@@ -1,0 +1,89 @@
+#! /bin/sh
+#
+# (c) 1994, TSRI
+# Garrett M. Morris
+# September 18, 1992.
+# April 8, 1993.
+#
+# Renumber residues contiguously, from 1 onwards.
+# Writes out REMARKS informing user of changes.
+# Output is PDBQ format, suitable for Autogrid input.
+#
+# Usage: file.pdb > file.rnm
+#
+awk 'BEGIN {
+	count = 0
+	oldresnum = ""
+	oldresname = ""
+	res_counter = 0
+        resnum = 0
+}
+$1 ~ /ATOM|HETATM|atom|hetatm/ {
+	card=	substr($0,1,6)
+	anum=	substr($0,7,5)
+	aname=	substr($0,13,4)
+        altloc= substr($0,17,1)
+	resname=substr($0,18,3)
+        chainid=substr($0,22,1)
+	resnum=	substr($0,23,4)
+        inscode=substr($0,27,1)
+	x=	substr($0,31,8)
+	y=	substr($0,39,8)
+	z=	substr($0,47,8)
+	occ=	substr($0,55,6)
+	tempfac=substr($0,61,6)
+	footnot=substr($0,67,4)
+	charge=	substr($0,71,6)		# *** PDBq format ONLY ***
+#
+	count++
+#
+	pdbaname = aname		  # Keep original format for output...
+#
+	if (substr(aname,1,1) == " ") {	  # Delete the first blank: -xxx -> xxx
+		aname=substr(aname,2,3)
+	}
+	if (substr(aname,4,1) == " ") {	  # Delete the last blank: xxx- -> xxx
+		aname=substr(aname,1,3)
+	}
+	if (substr(aname,3,1) == " ") {	  # Delete the last blank: xx- -> xx
+		aname=substr(aname,1,2)
+	}
+	if (substr(aname,2,1) == " ") {	  # Delete the last blank: x- -> x
+		aname=substr(aname,1,1)
+	}
+#
+	pdbresname = resname			# Keep original format for output...
+#
+	if (substr(resname,1,1) == " ") {	# Delete the first blank: -xx -> xx
+		resname=substr(resname,2,2)
+	}
+	if (substr(resname,1,1) == " ") {	# Delete the first blank: -x -> x
+		resname=substr(resname,2,1)
+	}
+#
+#
+	if ((resnum == oldresnum)&&(resname == oldresname)) {
+# Do nothing...
+	} else {
+		
+		res_counter++
+		newresnum = "" + res_counter
+	}
+	oldresnum = resnum
+	oldresname = resname
+#
+	printf("%-6s%5d %-4s%1s%-3s %1s%4d%1s   %8.3f%8.3f%8.3f%6.2f%6.2f%4s%6.3f\n", \
+	card, count, aname, altloc, resname, chainid, newresnum, inscode, x, y, z, \
+	occ, tempfac, footnot, charge)
+#
+	havedata=1
+	}
+
+$1 ~ /END|end|TER|ter/ {
+	if(havedata==1) print "TER   "
+	havedata=0
+}
+END { 
+	
+#	print "TER "
+}	' $*

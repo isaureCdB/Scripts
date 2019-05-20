@@ -1,0 +1,9 @@
+{"barmode": "stack"
+"yaxis": {
+    #{}"type": "log",
+    "range": [0, 100]
+  }
+"autosize": true
+width:1000
+height: 400
+}

@@ -1,0 +1,8 @@
+ sort -nk2 rkamber_amberscore_irmsd-sorted_fnat_400K-e4_350K-5e3_min5e2 | awk -v cutoff=10 'BEGIN{nr=0} $3 < cutoff{nr++} {print NR, nr}' | xmgrace -pipe
+
+ sort -nk2 rkamber_amberscore_irmsd-sorted_fnat_400K-e4_350K-5e3_min5e2 | awk -v cutoff=10 'BEGIN{nr=0} $3 < cutoff{nr++} {print nr}' > x
+ sort -nk2 ../../2I82_docking/rkamber_amberscore_irmsd-sorted_fnat_400K-e4_350K-5e3_min5e2 | awk -v cutoff=10 'BEGIN{nr=0} $3 < cutoff{nr++} {print nr}' > y
+
+paste x y | awk '{print NR, $0}' > z
+xmgrace -nxy z
+xmgrace -nxy z -par test.par 

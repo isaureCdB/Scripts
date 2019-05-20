@@ -1,0 +1,283 @@
+[
+  {
+    "type": "scatter",
+    "showlegend": false
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(0.000,80,40)"
+    },
+    "name": "1gmn",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(0.000,100,70)"
+    },
+    "name": "2hyv",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(55.385,80,40)"
+    },
+    "name": "1axm",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(55.385,100,70)"
+    },
+    "name": "1bfc",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(110.769,80,40)"
+    },
+    "name": "1fq9",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(110.769,100,70)"
+    },
+    "name": "1xmn",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(166.154,80,40)"
+    },
+    "name": "3c9e",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(166.154,100,70)"
+    },
+    "name": "3mpk",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(221.538,80,40)"
+    },
+    "name": "4ak2",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(221.538,100,70)"
+    },
+    "name": "4c4n",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(276.923,80,40)"
+    },
+    "name": "2jcq",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4",
+      "frag5"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(276.923,100,70)"
+    },
+    "name": "3ina",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4",
+      "frag5"
+    ],
+    "mode": "markers"
+  },
+  {
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "square",
+        "square",
+        "triangle-up"
+      ],
+      "color": "hsl(332.308,80,40)"
+    },
+    "name": "1rid",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4",
+      "frag5",
+      "frag6"
+    ],
+    "mode": "markers"
+  }
+]

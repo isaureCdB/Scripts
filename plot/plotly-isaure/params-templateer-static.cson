@@ -1,0 +1,17 @@
+{
+  "environment": {
+    "divname": "str",
+    "height": "int",
+    "config": "json",
+    "title": "text",
+    "layout": "json",
+    "width": "int",
+    "plotly_data": "json"
+  },
+  "result": "head_body",
+  "templates": [
+    "body",
+    "head",
+    "head_body"
+  ]
+}

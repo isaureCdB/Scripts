@@ -1,0 +1,5 @@
+in plotdata, you can edit "layout.cson" (and if necessary,"config.cson" ) by hand
+and edit "cell-generate-attrib.py" to control the auto-generation of attrib.csonso:  - plotdata/data.csv (export from OpenOffice)  - plotdata/layout.cson     -  cell-generate-attrib.py (generates plotdata/attrib.py)
+you shouldn't need anything else to ediy
+
+seamless make-plot.py

@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+import sys
+
+pdb = [ l for l in open(sys.argv[1]).readlines() if (len(l) > 53 and l[:4]=="ATOM") ]
+coor = [ [float(l[30:38]),float(l[38:46]),float(l[46:54])] for l in pdb ]
+n = len(coor)
+COM = [ sum([coor[i][j] for i in range(n) ])/n for j in range(3) ]
+roundCOM = [ round(COM[i]*1000)/1000 for i in range(3) ]
+print >> sys.stdout, roundCOM[0], roundCOM[1], roundCOM[2]
+
+#l = pdb[0]
+#print l[:30]+"%8.3f%8.3f%8.3f"%(COM[0], COM[1], COM[2])+l[54:],

@@ -1,0 +1,43 @@
+#! /bin/sh
+#
+awk 'BEGIN {
+  debug = 0
+	atmnum = 1
+  while (getline < FILENAME) {
+    if (debug == 1) printf("<<<DEBUG>>> \"%s\"\n", $0)
+    if ($0 ~ /^ATOM  |^HETATM/) { 
+      curatmnum = substr($0,7,5) + 0
+      cur2new[curatmnum] = atmnum
+      if (debug == 1) printf("<<<DEBUG>>>  cur2new[%d] = %d\n", curatmnum, atmnum)
+      atmnum++
+    }
+  }
+	atmnum = 1
+}
+/^HEADER|^COMPND|^AUTHOR|^SEQRES|^MASTER|^TER|^END |^END_RES|^ENDROOT|^ENDMDL|^REMARK|^USER|^MODEL |^ROOT|^BEGIN|^TORSDOF/ {
+    print
+}
+/^ATOM|^HETATM/ { 
+  if (debug == 1) printf("<<<DEBUG>>> \"%s\"\n", $0)
+	len = length($0)
+	card   = substr($0,1,6)
+	restofline = substr($0,13,(len-12))
+	printf("%6s%5d %s\n", card, atmnum, restofline)
+	atmnum++
+}
+/^CONECT/ {
+    printf("CONECT")
+    for (i=2; i<=NF; i++) {
+	   printf("%5d",cur2new[(0+$i)])
+	}
+	printf("\n")
+}
+/^ENDTORS|^ENDBRANCH|^TORS |^BRANCH/ {
+   if (debug == 1) printf("<<<DEBUG>>> \"%s\"\n", $0)
+   if (NF == 3) {
+      printf("%s %d %d\n", $1, cur2new[($2+0)], cur2new[($3+0)])
+   } else {
+     print "USER    insufficient fields"
+     print
+   }
+}' $*

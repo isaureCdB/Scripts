@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="plotly-latest.js"></script>
+<!-- <script type="text/javascript" src="plotly-latest.js"></script> -->
+<meta charset="utf-8">
+<title></title>
+</head>
+<body>
+<div id="plotlydiv" style="width: 500px; height: 500px;"><!-- Plotly chart will be drawn inside this DIV --></div>
+<script id="javascript">
+  var data = [
+  {
+    "x": [
+      0,
+      100
+    ],
+    "showlegend": false,
+    "y": [
+      0,
+      100
+    ],
+    "type": "scatter"
+  },
+  {
+    "y": [
+      4,
+      0,
+      0
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      11.0,
+      4.0,
+      6.0
+    ],
+    "name": "1fq9",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ]
+  },
+  {
+    "y": [
+      1,
+      4,
+      1
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      2.0,
+      25.0,
+      8.0
+    ],
+    "name": "3mpk",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ]
+  },
+  {
+    "y": [
+      0,
+      2,
+      0
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      13.0,
+      16.0,
+      3.0
+    ],
+    "name": "1gmn",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3"
+    ]
+  },
+  {
+    "y": [
+      0,
+      0,
+      0
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      5.0,
+      1.0,
+      0.8
+    ],
+    "name": "3ina",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4",
+      "frag5"
+    ]
+  },
+  {
+    "y": [],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [],
+    "name": "4c4n",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ]
+  },
+  {
+    "y": [
+      3,
+      0
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      1.0,
+      1.2
+    ],
+    "name": "1axm",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ]
+  },
+  {
+    "y": [
+      0
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      0.6
+    ],
+    "name": "1rid",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4",
+      "frag5",
+      "frag6"
+    ]
+  },
+  {
+    "y": [
+      0,
+      0
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      1.4,
+      0.3999999999999999
+    ],
+    "name": "1xmn",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ]
+  },
+  {
+    "y": [
+      1,
+      3,
+      0
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      5.0,
+      18.0,
+      1.6
+    ],
+    "name": "2jcq",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4",
+      "frag5"
+    ]
+  },
+  {
+    "y": [
+      0,
+      0
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      2.8,
+      0.19999999999999996
+    ],
+    "name": "3c9e",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ]
+  },
+  {
+    "y": [
+      0,
+      0
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      2.0,
+      1.8
+    ],
+    "name": "4ak2",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ]
+  },
+  {
+    "y": [
+      1
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      0.0
+    ],
+    "name": "2hyv",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3"
+    ]
+  },
+  {
+    "y": [
+      3,
+      22
+    ],
+    "type": "scatter",
+    "marker": {
+      "size": 10,
+      "symbol": [
+        "triangle-up",
+        "square",
+        "square",
+        "triangle-up"
+      ]
+    },
+    "x": [
+      6.0,
+      92.0
+    ],
+    "name": "1bfc",
+    "mode": "markers",
+    "text": [
+      "frag1",
+      "frag2",
+      "frag3",
+      "frag4"
+    ]
+  }
+];
+  var layout = {
+  "yaxis": {
+    "title": "autodock hits",
+    "range": [
+      -0.5,
+      5.0
+    ]
+  },
+  "xaxis": {
+    "title": "assembly hits",
+    "range": [
+      -0.5,
+      5.0
+    ]
+  }
+};
+  var config = {};
+  Plotly.newPlot('plotlydiv', data, layout, config);
+</script>
+</body>
+</html>

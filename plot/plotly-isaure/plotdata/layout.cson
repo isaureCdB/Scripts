@@ -1,0 +1,16 @@
+{
+  "yaxis": {
+    "title": "autodock hits",
+    "range": [
+      -0.5,
+      60.0
+    ]
+  },
+  "xaxis": {
+    "title": "assembly hits",
+    "range": [
+      -0.5,
+      60.0
+    ]
+  }
+}

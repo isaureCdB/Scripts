@@ -1,0 +1,34 @@
+#!/bin/csh
+#script to download a pdb file
+
+if ($#argv < 1) then
+  echo '  Missing argument' > /dev/stderr
+  echo '  Syntax: pdb_download <PDB code 1> [PDB code 2] [PDB code 3] [...] ' > /dev/stderr 
+  echo '  For example: pdb_download 1AVW 1BRC' > /dev/stderr
+  exit
+endif
+set pw = `pwd`
+set tmp = `mktemp tmpXXXX`
+
+#echo $argv | awk '{for (n = 1; n <= NF; n++) ret = ret "pdb" tolower($n) ".ent.Z\n"} END {print ret}' > $tmp
+#wget -B ftp://ftp.wwpdb.org/pub/pdb -i $tmp -o /dev/null
+foreach i(`echo $argv | awk '{print toupper($0)}'`)
+  echo $i
+  wget 'http://www.pdb.org/pdb/download/downloadFile.do?fileFormat=pdb&compression=NO&structureId='$i -O $i.pdb
+end
+ 
+#set ok = 1
+#foreach i($argv)
+#  gzip -d `echo $i | awk '{print "pdb" tolower($1) ".ent.Z"}'` |& awk -v code=$i '{printf("Error in downloading %s\n", code) > "/dev/stderr"}'
+#  mv -f `echo $i | awk '{print "pdb" tolower($1) ".ent"}'` $i.pdb >& /dev/null
+#  if (!(-e $i.pdb)) then
+#    set ok = 0
+#  endif
+#end
+
+#if ($ok == 1) then
+#  echo "OK" > /dev/stderr
+#endif
+
+rm -f $tmp
+  

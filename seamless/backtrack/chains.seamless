@@ -1,0 +1,1625 @@
+{
+  "lib": {
+    "/cell-filelink-start.py": {
+      "data": "if __name__ == \"__main__\":\n    #test with ipython -i\n    import sys, os\n\n    class dummy:\n        pass\n\n    class EditPin:\n        def __init__(self, value):\n            self.value = value\n            self.defined = True\n        def set(self, value):\n            print(\"SET\", value)\n            self.value = value\n        def get(self):\n            return self.value\n\n    class Getter:\n        def __init__(self, arg):\n            self.arg = arg\n        def get(self):\n            return self.arg\n    PINS = dummy()\n    PINS.value = EditPin(\"test\")\n    directory = sys.argv[1]\n    filename = sys.argv[2]\n    PINS.filepath = Getter(os.path.join(directory, filename))\n    PINS.latency = Getter(float(sys.argv[3]))\n    def serializer(v):\n        return str(v.get())\n    print(\"Edit in \" + filepath.get())\nelse:\n    from seamless.dtypes import serialize\n    def serializer(v):\n        return serialize(v._dtype, v.get())\n\n\nimport os, time, functools, traceback\nfrom threading import Thread, RLock, Event\nlast_value = None\nlast_serialized_value = None\nlast_exc = None\nlast_mtime = None\n\ndef write_file(fpath):\n    global last_mtime, last_value, last_serialized_value\n    if not PINS.value.defined:\n        last_mtime = -1 #will trigger a file read\n        return\n    if last_value == PINS.value.get():\n        return\n    val = serializer(PINS.value)\n    if last_serialized_value == val:\n        return\n    with lock:\n        if last_serialized_value != val:\n            #print(\"WRITE\", val)\n            if PINS.value._dtype == \"object\":\n                with open(fpath, \"wb\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            else:\n                with open(fpath, \"w\", encoding=\"utf-8\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            last_time = time.time()\n            try:\n                stat = os.stat(fpath)\n                last_mtime = stat.st_mtime\n            except Exception:\n                pass\n\nsleeptime = 0.01\n\ndef poll():\n    global last_time, last_mtime, last_value, last_serialized_value, last_exc\n    fpath = PINS.filepath.get()\n    while 1:\n        sleeps = int(PINS.latency.get() / sleeptime + 0.9999)\n        for n in range(sleeps):\n            time.sleep(sleeptime)\n            if terminate.is_set():\n                break\n        if terminate.is_set():\n            break\n        curr_time = time.time()\n        last_time = curr_time\n        if not os.path.exists(fpath):\n            try:\n                write_file(fpath)\n            except Exception:\n                exc = traceback.format_exc()\n                if exc != last_exc:\n                    print(exc)\n                    last_exc = exc\n        else:\n            with lock:\n                stat = os.stat(fpath)\n                try:\n                    if last_mtime is None or stat.st_mtime > last_mtime:\n                        data = None\n                        if PINS.value._dtype == \"object\":\n                            with open(fpath, \"rb\") as f:\n                                data = f.read()\n                        else:\n                            with open(fpath, encoding=\"utf-8\") as f:\n                                data = f.read()\n                        if data is not None:\n                            if last_serialized_value != data:\n                                #print(\"LOAD\")\n                                PINS.value.set(data)\n                                last_value = None\n                                last_serialized_value = data\n                        last_mtime = stat.st_mtime\n                except Exception:\n                    exc = traceback.format_exc()\n                    if exc != last_exc:\n                        print(exc)\n                        last_exc = exc\n\nterminate = Event()\nt = Thread(target=poll)\nt.setDaemon(True)\nlock = RLock()\nwrite_file(PINS.filepath.get())\nt.start()\n",
+      "links": [
+        "ctx1.cell1",
+        "ctx2.cell1",
+        "ctx3.cell1",
+        "ctx4.cell1",
+        "ctx6.cell1",
+        "ctx7.cell1"
+      ]
+    },
+    "/gui/cell-basic_display_UPDATE.py": {
+      "data": "if PINS.value.updated:\n    b.setValue(PINS.value.get())\nif PINS.title.updated:\n    w.setWindowTitle(PINS.title.get())\n",
+      "links": []
+    },
+    "/gui/cell-basic_display_float.py": {
+      "data": "from seamless.qt.QtWidgets import QDoubleSpinBox, QWidget, QVBoxLayout\nfrom seamless.qt.QtCore import Qt\n\nw = QWidget()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nvbox = QVBoxLayout()\nvbox.addStretch(1)\nw.setLayout(vbox)\nw.resize(300,100)\nw.setWindowTitle(PINS.title.get())\nw.show()\nb = QDoubleSpinBox()\nb.setReadOnly(True)\nb.setSingleStep(0.1)\nb.setMaximum(1000000)\nb.setValue(PINS.value.get())\nvbox.addWidget(b)\n",
+      "links": []
+    },
+    "/gui/cell-basic_display_html.py": {
+      "data": "from seamless.qt.QtWidgets import QPlainTextEdit, QWidget, QVBoxLayout\nfrom seamless.qt.QtCore import Qt\nfrom PyQt5.QtGui import QColor\n\nw = QWidget()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nvbox = QVBoxLayout()\n#vbox.addStretch(1)\nw.resize(600,600)\nw.setLayout(vbox)\nw.setWindowTitle(PINS.title.get())\n\nw.show()\nb = QPlainTextEdit()\nb.setReadOnly(True)\n#b.setFontPointSize(15)\nb.setPlainText(PINS.value.get())\n#b.setFontItalic(True)\n#b.setTextColor(QColor(255,0,0))\nvbox.addWidget(b)\n",
+      "links": []
+    },
+    "/gui/cell-basic_display_html_UPDATE.py": {
+      "data": "if PINS.value.updated:\n    b.setPlainText(PINS.value.get())\nif PINS.title.updated:\n    w.setWindowTitle(PINS.title.get())\n",
+      "links": []
+    },
+    "/gui/cell-basic_display_int.py": {
+      "data": "from seamless.qt.QtWidgets import QSpinBox, QWidget, QVBoxLayout\nfrom seamless.qt.QtCore import Qt\n\nw = QWidget()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nvbox = QVBoxLayout()\nvbox.addStretch(1)\nw.setLayout(vbox)\nw.resize(300,100)\nw.setWindowTitle(PINS.title.get())\nw.show()\nb = QSpinBox()\nb.setReadOnly(True)\nb.setMaximum(1000000)\nb.setValue(PINS.value.get())\nvbox.addWidget(b)\n",
+      "links": []
+    },
+    "/gui/cell-basic_display_json.py": {
+      "data": "from seamless.qt.QtWidgets import QTextEdit, QWidget, QVBoxLayout\nfrom seamless.qt.QtCore import Qt\nfrom PyQt5.QtGui import QColor\nimport json\n\nw = QWidget()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nvbox = QVBoxLayout()\n#vbox.addStretch(1)\nw.resize(600,600)\nw.setLayout(vbox)\nw.setWindowTitle(PINS.title.get())\n\nw.show()\nb = QTextEdit()\nb.setReadOnly(True)\nb.setFontPointSize(15)\nb.setText(json.dumps(PINS.value.get(), indent=2))\n#b.setFontItalic(True)\n#b.setTextColor(QColor(255,0,0))\nvbox.addWidget(b)\n",
+      "links": []
+    },
+    "/gui/cell-basic_display_json_UPDATE.py": {
+      "data": "if PINS.value.updated:\n    b.setText(json.dumps(PINS.value.get(), indent=2))\nif PINS.title.updated:\n    b.setWindowTitle(PINS.title.get())\n",
+      "links": []
+    },
+    "/gui/cell-basic_display_text.py": {
+      "data": "from seamless.qt.QtWidgets import QTextEdit, QWidget, QVBoxLayout\nfrom seamless.qt.QtCore import Qt\nfrom PyQt5.QtGui import QColor\n\nw = QWidget()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nvbox = QVBoxLayout()\n#vbox.addStretch(1)\nw.resize(600,600)\nw.setLayout(vbox)\nw.setWindowTitle(PINS.title.get())\n\nw.show()\nb = QTextEdit()\nb.setReadOnly(True)\nb.setFontPointSize(15)\nb.setText(PINS.value.get())\n#b.setFontItalic(True)\n#b.setTextColor(QColor(255,0,0))\nvbox.addWidget(b)\n",
+      "links": []
+    },
+    "/gui/cell-basic_display_text_UPDATE.py": {
+      "data": "if PINS.value.updated:\n    b.setText(PINS.value.get())\nif PINS.title.updated:\n    w.setWindowTitle(PINS.title.get())\n",
+      "links": []
+    },
+    "/gui/cell-basic_editor_UPDATE.py": {
+      "data": "if PINS.value.updated:\n    b.setValue(PINS.value.get())\nif PINS.title.updated:\n    w.setWindowTitle(PINS.title.get())\n",
+      "links": []
+    },
+    "/gui/cell-basic_editor_float.py": {
+      "data": "from seamless.qt.QtWidgets import QDoubleSpinBox, QWidget, QVBoxLayout\nfrom seamless.qt.QtCore import Qt\n\nw = QWidget()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nvbox = QVBoxLayout()\nvbox.addStretch(1)\nw.setLayout(vbox)\nw.resize(300,100)\nw.setWindowTitle(PINS.title.get())\nw.show()\nb = QDoubleSpinBox()\nb.setSingleStep(0.01)\nb.setDecimals(3)\nb.setMaximum(1000000)\nif PINS.value.defined:\n    b.setValue(PINS.value.get())\nvbox.addWidget(b)\nb.valueChanged.connect(PINS.value.set)\n",
+      "links": []
+    },
+    "/gui/cell-basic_editor_int.py": {
+      "data": "from seamless.qt.QtWidgets import QSpinBox, QWidget, QVBoxLayout\nfrom seamless.qt.QtCore import Qt\n\nw = QWidget()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nvbox = QVBoxLayout()\nvbox.addStretch(1)\nw.setLayout(vbox)\nw.resize(300,100)\nw.setWindowTitle(PINS.title.get())\nw.show()\nb = QSpinBox()\nb.setMaximum(1000000)\nif PINS.value.defined:\n    b.setValue(PINS.value.get())\nvbox.addWidget(b)\nb.valueChanged.connect(PINS.value.set)\n",
+      "links": [
+        "ctx5.cell3"
+      ]
+    },
+    "/gui/cell-basic_editor_int_UPDATE.py": {
+      "data": "if PINS.value.updated:\n    b.setValue(PINS.value.get())\nif PINS.title.updated:\n    w.setWindowTitle(PINS.title.get())\nif PINS.maximum.updated:\n    b.setMaximum(PINS.maximum.get())\n",
+      "links": [
+        "ctx5.cell5"
+      ]
+    },
+    "/gui/cell-basic_editor_json.py": {
+      "data": "from seamless.qt.QtWidgets import QTextEdit, QWidget, QVBoxLayout\nfrom seamless.qt.QtCore import Qt\nfrom PyQt5.QtGui import QColor\nimport json\n\nw = QWidget()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nvbox = QVBoxLayout()\n#vbox.addStretch(1)\nw.resize(600,600)\nw.setLayout(vbox)\nw.setWindowTitle(PINS.title.get())\n\nclass MyTextEdit(QTextEdit):\n    def focusOutEvent(self, event):\n        PINS.value.set(self.toPlainText())\n        QTextEdit.focusOutEvent(self, event)\n\nw.show()\nb = MyTextEdit()\nb.setFontPointSize(15)\nif PINS.value.defined:\n    b.setText(json.dumps(PINS.value.get(), indent=2))\n#b.setFontItalic(True)\n#b.setTextColor(QColor(255,0,0))\nvbox.addWidget(b)\n",
+      "links": []
+    },
+    "/gui/cell-basic_editor_json_UPDATE.py": {
+      "data": "if PINS.value.updated:\n    b.setText(json.dumps(PINS.value.get(), indent=2))\nif PINS.title.updated:\n    w.setWindowTitle(PINS.title.get())\n",
+      "links": []
+    },
+    "/gui/cell-basic_editor_text.py": {
+      "data": "from seamless.qt.QtWidgets import QTextEdit, QMainWindow, QAction\nfrom seamless.qt.QtCore import Qt\nfrom PyQt5.QtGui import QColor\n\nw = QMainWindow()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nw.resize(600,600)\nw.setWindowTitle(PINS.title.get())\n\nclass MyTextEdit(QTextEdit):\n    def focusOutEvent(self, event):\n        PINS.value.set(self.toPlainText())\n        QTextEdit.focusOutEvent(self, event)\n\nw.show()\nb = MyTextEdit()\nb.setFontPointSize(15)\nw.setCentralWidget(b)\n\nsaveAction = QAction('&Save', w)\nsaveAction.setShortcut('Ctrl+S')\nsaveAction.setStatusTip('Save')\nsaveAction.triggered.connect(lambda: PINS.value.set(b.toPlainText()))\nw.menuBar().addAction(saveAction)\n\nif PINS.value.defined:\n    b.setText(PINS.value.get())\n#b.setFontItalic(True)\n#b.setTextColor(QColor(255,0,0))\n",
+      "links": []
+    },
+    "/gui/cell-basic_editor_text_UPDATE.py": {
+      "data": "if PINS.value.updated:\n    b.setText(PINS.value.get())\nif PINS.title.updated:\n    w.setWindowTitle(PINS.title.get())\n",
+      "links": []
+    }
+  },
+  "macro": [
+    {
+      "with_context": false,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": [
+        "json",
+        "seamless",
+        "reactor_params"
+      ],
+      "module_name": "seamless.core.reactor",
+      "func_name": "reactor",
+      "code": "@macro(type=(\"json\", \"seamless\", \"reactor_params\"),with_context=False)\ndef reactor(params):\n    \"\"\"Defines a reactor worker.\n\nReactors react upon changes in their input cells.\nReactors are connected to their input cells via inputpins. In addition, reactors\nmay manipulate output cells via outputpins. Finally, a cell may be both an\ninput and an output of the reactor, by connecting it via an editpin.\nThe pins are declared in the `params` parameter (see below).\n\nIn addition, all reactors have three implicit inputpins named `code_start`,\n`code_update` and `code_stop`. Each pin must be connected to a Python cell\n( `dtype=(\"text\", \"code\", \"python\")` ), containing a code block.\n\nThe reactor will start as soon as all input cells (including the three code cells)\nhave been defined. The startup of the reactor will trigger the execution of the\ncode in the `code_start` cell.\n\nAny change in the inputpins (including at startup)\nwill trigger the execution of the `code_update` cell. The `code_stop` cell is\ninvoked when the reactor is destroyed.\n\nAs of seamless 0.1, macro re-evaluation destroys and re-creates all reactors\ncreated by the macro, unless the macro has caching enabled.\n\nAll three code cells are executed in the same namespace. The namespace contains\nan object called `PINS`. This object can be queried for pin objects: a pin\ncalled `spam` is accessible as pin object ``PINS.spam``. The namespace also\ncontains IDENTIFIER, which is guaranteed to be unique for each reactor\ninstance.\n\nEvery inputpin and editpin object contains a ``get()`` method that\nreturns the value.\nAs of seamless 0.1, the `value` property is identical to ``pin.get()``.\n\nEvery inputpin and editpin object has a property `updated`, which is True if\nthe pin has been updated since the last time `code_update` was executed.\n\nEvery outputpin and editpin has a ``set(value)`` method.\nIn case of a signal outputpin, ``set()`` is to be invoked without argument.\nInvoking ``set()`` on a signal outputpin will propagate the signal as fast as possible:\n    - If set from the main thread: immediately. Downstream workers are\n      notified and activated (if synchronous) before set() returns\n    - If set from another thread: as soon as ``seamless.run_work`` is called.\n      Then, downstream workers are notified and activated before any other\n      non-signal notification.\n\nAs of seamless 0.1, all reactors are synchronous (blocking): their code is\nexecuted in the main thread. Therefore, seamless and IPython are non-responsive\nwhile reactor code is executing, and reactor code should return as soon as\npossible. Therefore, if they perform long computations, reactors should spawn\ntheir own threads or processes from within their code.\n\nInvoke ``reactor.status()`` to get the current status of the reactor\n\nInvoke ``shell(reactor)`` to create an IPython shell of the reactor namespace\n\n``pin.connect(cell)`` connects an outputpin to a cell\n\n``cell.connect(pin)`` connects a cell to an inputpin\n\n``pin.cell()`` returns or creates a cell that is connected to that pin\n\nParameters\n----------\n\n    params: dict\n        A dictionary containing the reactor parameters.\n        As of seamless 0.1, each (name,value) item represents a reactor pin:\n\n        -  name: string\n            name of the pin\n\n        -  value: dict\n            with the following items:\n\n            - pin: string\n                must be \"input\", \"output\" or \"edit\"\n            - dtype: string or tuple of strings\n                Describes the dtype of the cell(s) connected to the pin.\n                As of seamless 0.1, the following data types are understood:\n\n                -   \"int\", \"float\", \"bool\", \"str\", \"json\", \"cson\", \"array\", \"signal\"\n                -   \"text\", (\"text\", \"code\", \"python\"), (\"text\", \"code\", \"ipython\")\n                -   (\"text\", \"code\", \"silk\"), (\"text\", \"code\", \"slash-0\")\n                -   (\"text\", \"code\", \"vertexshader\"), (\"text\", \"code\", \"fragmentshader\"),\n                -   (\"text\", \"html\"),\n                -   (\"json\", \"seamless\", \"transformer_params\"),\n                    (\"cson\", \"seamless\", \"transformer_params\"),\n                -   (\"json\", \"seamless\", \"reactor_params\"),\n                    (\"cson\", \"seamless\", \"reactor_params\")\n\n            - must_be_defined: bool\n               default = True\n\n               In case of edit pins, if `must_be_defined` is False, the reactor\n               will start up  even if the connected cell does not yet have a\n               defined value.\n\n        Since \"reactor\" is a macro, the dictionary can also be provided\n        in the form of a cell of dtype (\"json\", \"seamless\", \"reactor_params\")\n\"\"\"\n    from seamless.core.reactor import Reactor #code must be standalone\n    return Reactor(params)\n"
+    },
+    {
+      "with_context": false,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": [
+        "json",
+        "seamless",
+        "transformer_params"
+      ],
+      "module_name": "seamless.core.transformer",
+      "func_name": "transformer",
+      "code": "@macro(type=(\"json\", \"seamless\", \"transformer_params\"), with_context=False)\ndef transformer(params):\n    \"\"\"Defines a transformer worker.\n\nTransformers transform their input cells into an output result.\nTransformers are connected to their input cells via input pins, and their\nresult is connected to an output cell via an output pin. There can be only one\noutput pin. The pins are declared in the `params` parameter (see below).\n\nIn addition, all transformers have an implicit input pin named \"code\",\nwhich must be connected to a Python cell ( `dtype=(\"text\", \"code\", \"python\")` ).\nThe code must be a Python block that returns the result using a \"return\" statement.\nAll input values are injected directly into the code's namespace. The variable\nname of the input is the same as its pin name.\n\nAs of seamless 0.1, all transformers are asynchronous (non-blocking),\nand they carry out their computation in a separate process\n(using ``multiprocessing``).\n\nAs of seamless 0.1, transformers start their computation as soon as all inputs\n(including the code) has been defined, even if no output cell has been connected.\nWhenever the input data or code changes, a new computation is performed. If the\nprevious computation is still in progress, it is canceled.\n\nInside the transformer code, preliminary values can be returned using\n``return_preliminary(value)``.\nAs of seamless 0.1, this does not require any special pin declaration.\n\nInvoke ``transformer.status()`` to get the current status of the transformer.\n\nInvoke ``shell(transformer)`` to create an IPython shell\nof the transformer namespace.\n\n``pin.connect(cell)`` connects an outputpin to a cell.\n\n``cell.connect(pin)`` connects a cell to an inputpin.\n\n``pin.cell()`` returns or creates a cell that is connected to that pin.\n\nParameters\n----------\n\n    params: dict\n        A dictionary containing the transformer parameters.\n\n        As of seamless 0.1, each (name,value) item represents a transformer pin:\n\n        -  name: string\n            name of the pin\n\n        -  value: dict\n            with the following items:\n\n            - pin: string\n                must be \"input\" or \"output\". Only one output pin is allowed.\n            - dtype: string or tuple of strings\n                Describes the dtype of the cell(s) connected to the pin.\n                As of seamless 0.1, the following data types are understood:\n\n                -   \"int\", \"float\", \"bool\", \"str\", \"json\", \"cson\", \"array\", \"signal\"\n                -   \"text\", (\"text\", \"code\", \"python\"), (\"text\", \"code\", \"ipython\")\n                -   (\"text\", \"code\", \"silk\"), (\"text\", \"code\", \"slash-0\")\n                -   (\"text\", \"code\", \"vertexshader\"), (\"text\", \"code\", \"fragmentshader\"),\n                -   (\"text\", \"html\"),\n                -   (\"json\", \"seamless\", \"transformer_params\"),\n                    (\"cson\", \"seamless\", \"transformer_params\"),\n                -   (\"json\", \"seamless\", \"reactor_params\"),\n                    (\"cson\", \"seamless\", \"reactor_params\")\n\n        Since \"transformer\" is a macro, the dictionary can also be provided\n        in the form of a cell of dtype (\"json\", \"seamless\", \"transformer_params\")\n\"\"\"\n    from seamless.core.transformer import Transformer #code must be standalone\n    return Transformer(params)\n"
+    },
+    {
+      "with_context": true,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": "json",
+      "module_name": "seamless.lib.dynamic_html",
+      "func_name": "dynamic_html",
+      "code": "@macro(\"json\")\ndef dynamic_html(ctx, params):\n    from seamless import reactor\n    from collections import OrderedDict\n    params2 = { \"vars\": OrderedDict(),\n                \"html\": OrderedDict(),\n                \"evals\": OrderedDict()\n              }\n    ed_params = {\n        \"DYNAMIC_HTML_PARAMS\": {\n            \"pin\": \"input\",\n            \"dtype\": \"json\"\n        },\n        \"DYNAMIC_HTML_TEMPLATE\": {\n            \"pin\": \"input\",\n            \"dtype\": \"text\"\n        },\n        \"dynamic_html\": {\n            \"pin\": \"output\",\n            \"dtype\": (\"text\", \"html\")\n        }\n    }\n    assert \"dynamic_html\" not in params\n    for k,v in params.items():\n        assert isinstance(v,dict), k\n        ed_param = {\"pin\": \"input\"}\n        type_ = v[\"type\"]\n        assert type_ in (\"var\", \"html\", \"eval\"), type_\n        if type_ == \"var\":\n            dtype = v.get(\"dtype\")\n            evals = v.get(\"evals\", [])\n            var = v.get(\"var\", k)\n            params2[\"vars\"][k] = (var, evals)\n            ed_param[\"dtype\"] = dtype\n        elif type_ == \"html\":\n            id_ = v.get(\"id\", k)\n            params2[\"html\"][k] = id_\n            ed_param[\"dtype\"] = (\"text\", \"html\")\n        else: #type_ = \"eval\"\n            on_start = v.get(\"on_start\", None)\n            params2[\"evals\"][k] = on_start\n            ed_param[\"dtype\"] = \"text\"\n        ed_params[k] = ed_param\n    for k,v in params2[\"vars\"].items():\n        var, evals = v\n        for e in evals:\n            assert e in params2[\"evals\"], (k, e, list(params2[\"evals\"].keys()))\n    rc = ctx.rc = reactor(ed_params)\n    rc.code_start.cell().fromfile(\"cell-dynamic-html-start.py\")\n    rc.code_update.cell().set(\"update(on_start=False)\")\n    rc.code_stop.cell().set(\"\")\n    rc.DYNAMIC_HTML_PARAMS.cell().set(params2)\n    rc.DYNAMIC_HTML_TEMPLATE.cell().fromfile(\"dynamic-html.jinja\")\n    ctx.export(rc)\n"
+    },
+    {
+      "with_context": true,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": "str",
+      "module_name": "seamless.lib.filelink",
+      "func_name": "filelink",
+      "code": "@macro(\"str\")\ndef filelink(ctx, cell_type):\n    cell_filelink_start = \"cell-filelink-start.py\" #repeat for inline\n    from seamless import reactor\n    pinparams = {\n       \"value\": {\n         \"pin\": \"edit\",\n         \"dtype\": cell_type,\n         \"must_be_defined\": False\n       },\n       \"filepath\" : {\n         \"pin\": \"input\",\n         \"dtype\": \"str\"\n       },\n       \"latency\" : {\n         \"pin\": \"input\",\n         \"dtype\": \"float\"\n       },\n    }\n    rc = ctx.rc = reactor(pinparams)\n    rc.code_start.cell().fromfile(cell_filelink_start)\n    rc.code_update.cell().set(\"write_file(PINS.filepath.get())\")\n    rc.code_stop.cell().set('terminate.set(); t.join()')\n    ctx.export(rc)\n"
+    },
+    {
+      "with_context": true,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": {
+        "_order": [
+          "display_type",
+          "title"
+        ],
+        "display_type": "str",
+        "title": {
+          "default": "Basic display",
+          "type": "str"
+        }
+      },
+      "module_name": "seamless.lib.gui.basic_display",
+      "func_name": "basic_display",
+      "code": "@macro(OrderedDict((\n    (\"display_type\",\"str\"),\n    (\"title\",{\"type\": \"str\", \"default\": \"Basic display\"})\n)))\ndef basic_display(ctx, display_type, title):\n    from seamless import reactor\n\n    _displays = {\n      \"int\": {\n        \"code\": \"cell-basic_display_int.py\",\n        \"update\": \"cell-basic_display_UPDATE.py\",\n      },\n      \"float\": {\n        \"code\": \"cell-basic_display_float.py\",\n        \"update\": \"cell-basic_display_UPDATE.py\",\n      },\n      \"text\": {\n        \"code\": \"cell-basic_display_text.py\",\n        \"update\": \"cell-basic_display_text_UPDATE.py\",\n      },\n      \"str\": {\n        \"code\": \"cell-basic_display_text.py\",\n        \"update\": \"cell-basic_display_text_UPDATE.py\",\n      },\n      (\"text\", \"html\"): {\n        \"code\": \"cell-basic_display_html.py\",\n        \"update\": \"cell-basic_display_html_UPDATE.py\",\n      },\n      \"json\": {\n        \"code\": \"cell-basic_display_json.py\",\n        \"update\": \"cell-basic_display_json_UPDATE.py\",\n      },\n    }\n\n    def _match_type(type, typelist):\n        typelist = list(typelist)\n        type2 = type\n        if isinstance(type, str):\n            type2 = (type,)\n        typelist2 = []\n        for t in typelist:\n            if isinstance(t, str):\n                typelist2.append((t,))\n            else:\n                typelist2.append(t)\n        matches = []\n        for n in range(len(typelist)):\n            ltype = typelist2[n]\n            k = min(len(type2), len(ltype))\n            if type2[:k] == ltype[:k]:\n                matches.append((n, k))\n        if not len(matches):\n            raise TypeError(\"Cannot find display for cell type '{0}'\".format(type))\n        matches.sort(key=lambda v: -v[1])\n        bestmatch = matches[0][0]\n        return typelist[bestmatch]\n\n    display_type = _match_type(display_type, _displays.keys())\n    pinparams = {\n      \"value\": {\n        \"pin\": \"input\",\n        \"dtype\": display_type\n      },\n      \"title\": {\n        \"pin\": \"input\",\n        \"dtype\": \"str\",\n      },\n    }\n    d = ctx.display = reactor(pinparams)\n    d.title.cell().set(title)\n    d.code_start.cell().fromfile(_displays[display_type][\"code\"])\n    d.code_stop.cell().set('w.destroy()')\n    upfile = _displays[display_type][\"update\"]\n    c_up = d.code_update.cell()\n    if upfile is not None:\n        c_up.fromfile(upfile)\n    else:\n        c_up.set(\"\")\n    ctx.export(d, forced=[\"title\"])\n"
+    },
+    {
+      "with_context": true,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": {
+        "_order": [
+          "editor_type",
+          "title"
+        ],
+        "editor_type": "str",
+        "title": {
+          "default": "Basic editor",
+          "type": "str"
+        }
+      },
+      "module_name": "seamless.lib.gui.basic_editor",
+      "func_name": "basic_editor",
+      "code": "@macro(OrderedDict((\n    (\"editor_type\",\"str\"),\n    (\"title\",{\"type\": \"str\", \"default\": \"Basic editor\"})\n)))\ndef basic_editor(ctx, editor_type, title):\n    from seamless import reactor\n\n    _editors = {\n      \"int\": {\n        \"code\": \"cell-basic_editor_int.py\",\n        \"update\": \"cell-basic_editor_int_UPDATE.py\",\n      },\n      \"float\": {\n        \"code\": \"cell-basic_editor_float.py\",\n        \"update\": \"cell-basic_editor_UPDATE.py\",\n      },\n      \"text\": {\n        \"code\": \"cell-basic_editor_text.py\",\n        \"update\": \"cell-basic_editor_text_UPDATE.py\",\n      },\n      \"json\": {\n        \"code\": \"cell-basic_editor_json.py\",\n        \"update\": \"cell-basic_editor_json_UPDATE.py\",\n      },\n    }\n\n    def _match_type(type, typelist):\n        typelist = list(typelist)\n        type2 = type\n        if isinstance(type, str):\n            type2 = (type,)\n        typelist2 = []\n        for t in typelist:\n            if isinstance(t, str):\n                typelist2.append((t,))\n            else:\n                typelist2.append(t)\n        matches = []\n        for n in range(len(typelist)):\n            ltype = typelist2[n]\n            k = min(len(type2), len(ltype))\n            if type2[:k] == ltype[:k]:\n                matches.append((n, k))\n        if not len(matches):\n            raise TypeError(\"Cannot find editor for cell type '{0}'\".format(type))\n        matches.sort(key=lambda v: -v[1])\n        bestmatch = matches[0][0]\n        return typelist[bestmatch]\n\n    editor_type = _match_type(editor_type, _editors.keys())\n    pinparams = {\n      \"value\": {\n        \"pin\": \"edit\",\n        \"dtype\": editor_type,\n        \"must_be_defined\": False\n      },\n      \"title\": {\n        \"pin\": \"input\",\n        \"dtype\": \"str\",\n      },\n    }\n    if editor_type == \"int\":\n        pinparams[\"maximum\"] = {\"pin\": \"input\", \"dtype\": \"int\"}\n    rc = ctx.rc = reactor(pinparams)\n    rc.title.cell().set(title)\n    forced = [\"title\"]\n    if editor_type == \"int\":\n        rc.maximum.set(9999999)\n        forced.append(\"maximum\")\n    rc.code_start.cell().fromfile(_editors[editor_type][\"code\"])\n    rc.code_stop.cell().set('w.destroy()')\n    upfile = _editors[editor_type][\"update\"]\n    c_up = rc.code_update.cell(True)\n    if upfile is not None:\n        c_up.fromfile(upfile)\n    else:\n        c_up.set(\"\")\n    ctx.export(rc, forced=forced)\n"
+    },
+    {
+      "with_context": true,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": {
+        "_order": [
+          "dtype",
+          "title"
+        ],
+        "dtype": {
+          "default": [
+            "text",
+            "html"
+          ],
+          "type": "dtype"
+        },
+        "title": {
+          "default": "Browser",
+          "type": "str"
+        }
+      },
+      "module_name": "seamless.lib.gui.browser",
+      "func_name": "browser",
+      "code": "@macro(OrderedDict((\n    (\"dtype\",{\"type\": \"dtype\", \"default\": (\"text\", \"html\")}),\n    (\"title\",{\"type\": \"str\", \"default\": \"Browser\"})\n)))\ndef browser(ctx, dtype, title):\n    from seamless import reactor\n    assert dtype[:2] == (\"text\", \"html\") #for now...\n    pinparams = {\n      \"value\": {\n        \"pin\": \"edit\",\n        \"dtype\": dtype\n      },\n      \"title\": {\n        \"pin\": \"input\",\n        \"dtype\": \"str\",\n      },\n    }\n    rc = ctx.rc = reactor(pinparams)\n    rc.title.cell().set(title)\n    rc.code_start.cell().fromfile(\"cell-browser.py\")\n    rc.code_stop.cell().set('widget.destroy()')\n    c_up = rc.code_update.cell(True)\n    c_up.fromfile(\"cell-browser_UPDATE.py\")\n    ctx.export(rc, forced=[\"title\"])\n"
+    },
+    {
+      "with_context": true,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": [
+        "json",
+        "seamless",
+        "transformer_params"
+      ],
+      "module_name": "seamless.lib.itransformer",
+      "func_name": "itransformer",
+      "code": "@macro(type=(\"json\", \"seamless\", \"transformer_params\"))\ndef itransformer(ctx, params):\n    from seamless import reactor\n    from seamless.core.worker import ExportedInputPin\n    params2 = params.copy()\n    params2[\"code\"] = {\"pin\": \"input\",\n                        \"dtype\": (\"text\", \"code\", \"ipython\")}\n    if \"html\" not in params:\n        params2[\"html\"] = {\"pin\": \"output\",\n                            \"dtype\": (\"text\", \"html\")}\n    params2[\"transformer_params\"] = {\"pin\": \"input\", \"dtype\": \"json\"}\n    params2[\"@shell\"] =  \".namespace\"\n    rc = ctx.rc = reactor(params2)\n    rc.transformer_params.cell().set(params)\n    rc.code_start.cell().fromfile(\"cell-itransformer.py\")\n    rc.code_update.cell().set(\"do_update()\")\n    rc.code_stop.cell().set(\"\")\n    ctx.export(ctx.rc)\n"
+    },
+    {
+      "with_context": true,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": {
+        "_order": [
+          "template_definition",
+          "output_type"
+        ],
+        "output_type": {
+          "default": [
+            "text",
+            "html"
+          ],
+          "type": "dtype"
+        },
+        "template_definition": "json"
+      },
+      "module_name": "seamless.lib.templateer",
+      "func_name": "templateer",
+      "code": "@macro(OrderedDict((\n  (\"template_definition\", \"json\"),\n  (\"output_type\", {\"type\": \"dtype\", \"default\": (\"text\", \"html\")}),\n)))\ndef templateer(ctx, template_definition, output_type):\n    from seamless import cell, reactor\n    templates = template_definition[\"templates\"]\n    assert isinstance(templates, list)\n    environment = template_definition[\"environment\"]\n    ed_params = {}\n    for t in templates:\n        assert t not in ed_params, t\n        ed_params[t] = {\"pin\": \"input\", \"dtype\": \"text\"}\n    for k,v in environment.items():\n        assert k not in ed_params, k\n        ed_params[k] = {\"pin\": \"input\", \"dtype\": v}\n    ed_params[\"TEMPLATE_DEFINITION\"] = {\"pin\": \"input\", \"dtype\": \"json\"}\n    ed_params[\"RESULT\"] = {\"pin\": \"output\", \"dtype\": output_type}\n    ctx.rc = reactor(ed_params)\n    ctx.rc.TEMPLATE_DEFINITION.cell().set(template_definition)\n    ctx.rc.code_start.cell().fromfile(\"cell-templateer.py\")\n    ctx.rc.code_update.cell().set(\"make_template()\")\n    ctx.rc.code_stop.cell().set(\"\")\n    ctx.export(ctx.rc)\n"
+    },
+    {
+      "with_context": false,
+      "dtype": [
+        "text",
+        "code",
+        "python"
+      ],
+      "type_args": {
+        "_order": [
+          "period"
+        ],
+        "period": {
+          "default": 0,
+          "type": "float"
+        }
+      },
+      "module_name": "seamless.lib.timer",
+      "func_name": "timer",
+      "code": "@macro(OrderedDict((\n    (\"period\", {\"type\": \"float\", \"default\": 0}),\n)), with_context=False)\ndef timer(period):\n    from seamless import reactor\n    timer = reactor({\n        \"period\": {\"pin\": \"input\", \"dtype\": \"float\"},\n        \"trigger\": {\"pin\": \"output\", \"dtype\": \"signal\"}\n    })\n    timer.code_start.cell().fromfile(\"cell-timer.py\")\n    timer.code_update.cell().set(\"\")\n    timer.code_stop.cell().set(\"t.cancel(); dead = True\")\n    if period > 0:\n        timer.period.cell().set(period)\n    return timer\n"
+    }
+  ],
+  "main": {
+    "type": "context",
+    "like_worker": false,
+    "like_cell": false,
+    "pins": {},
+    "auto": [
+      "cell1",
+      "cell10",
+      "cell11",
+      "cell12",
+      "cell13",
+      "cell14",
+      "cell15",
+      "cell16",
+      "cell17",
+      "cell18",
+      "cell2",
+      "cell3",
+      "cell4",
+      "cell5",
+      "cell6",
+      "cell7",
+      "cell8",
+      "cell9",
+      "ctx1",
+      "ctx2",
+      "ctx3",
+      "ctx4",
+      "ctx5",
+      "ctx6",
+      "ctx7"
+    ],
+    "children": {
+      "cell1": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "./lib_fwd_bwd.py"
+      },
+      "cell10": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "./cell-stochastic-backtrack.py"
+      },
+      "cell11": {
+        "dtype": "float",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "0.2"
+      },
+      "cell12": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "./cell-print-bprob.py"
+      },
+      "cell13": {
+        "dtype": "float",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "0.2"
+      },
+      "cell14": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "Bprob.txt"
+      },
+      "cell15": {
+        "dtype": "object",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "hash": "6839ae6e0c0efdcf56394a54fb793467"
+      },
+      "cell16": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "./cell-print_chains.py"
+      },
+      "cell17": {
+        "dtype": "float",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "0.2"
+      },
+      "cell18": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "chains.txt"
+      },
+      "cell2": {
+        "dtype": "float",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "0.2"
+      },
+      "cell3": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "./cell-fwd-bwd.py"
+      },
+      "cell4": {
+        "dtype": "float",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "0.2"
+      },
+      "cell5": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "UUU-5e5-5frag-2A.npz"
+      },
+      "cell6": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "UUU-5e5.score"
+      },
+      "cell7": {
+        "dtype": "str",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "./lib_backtrack.py"
+      },
+      "cell8": {
+        "dtype": "float",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "0.2"
+      },
+      "cell9": {
+        "dtype": "object",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "hash": "5f29759ef7c7d1c7da5a05bfa51b25a7"
+      },
+      "code": {
+        "dtype": [
+          "text",
+          "code",
+          "python"
+        ],
+        "resource": {
+          "filepath": "./cell-fwd-bwd.py",
+          "lib": false,
+          "mode": 5,
+          "save_policy": 1
+        },
+        "data": "import numpy as np\n\nboltzmann = float(3.2976230  * 6.022140857 * 10**(-4))\nRT = boltzmann * float(310)\n\nprint(123)\ninteractions = map_npz(npz_file)[0]\nprint(\"Interactions mapped\")\nnfrags = len(interactions) + 1\n\n#Storing the energy values\nenergies = np.array(store_energies(scores_file, RT))\nprint(\"Scores stored\")\nnposes = len(energies)   # total Nb poses\n\n#The forward-backward algorithm\nz = fwd(energies, interactions)\ny = bwd(energies, interactions)\n\n#print(z)\n#print(y)\n#The Big \"Z\"\nZ = sum(energies * z[0,:])\nprint(\"Big Z2 calculated : %s\"%Z)\n#Y = sum(y[:,-1])\n#print(\"Big Y2 calculated : %s\"%Y)\n\n#Calculating the value of E(p*) per fragment\nE = y*energies*z # E[pose, frag]\n#print(\"E %s\"%E)\n\nBprob = np.sum(E, axis = 0)/np.sum(E, axis = (0,1))\nprint(\"Bprob %s\"%Bprob)\n\nresult = {\n    \"energies\": energies,\n    \"z\": z,\n    \"interactions\": interactions,\n    \"Bprob\": Bprob\n}\nreturn result\n"
+      },
+      "code2": {
+        "dtype": [
+          "text",
+          "code",
+          "python"
+        ],
+        "resource": {
+          "filepath": "./cell-stochastic-backtrack.py",
+          "lib": false,
+          "mode": 5,
+          "save_policy": 1
+        },
+        "data": "import random\nimport time\nimport numpy as np\n\nstart = time.time()\nenergies, z, interactions = \\\n  fwd_bwd_result[\"energies\"], \\\n  fwd_bwd_result[\"z\"], fwd_bwd_result[\"interactions\"]\n\nZ = sum(energies * z[0,:])\n\nnp.random.seed(0)\nchains, occurencies = stochastic_backtrack(energies, Z, z, interactions, num_samples)\nstop = time.time()\n\ncounted = sorted(list(zip(occurencies, chains)), key=lambda k: -k[0])\nchains_sorted = np.array([c[1] for c in counted])\noccurencies_sorted =  np.array([c[0] for c in counted])\n#for count, chain in counted:\n#    print(count, \"   \", *chain, file=result)\n\nprint(\"time : %s\"%(stop - start))\nprint(\"DONE\")\nresult = {\n    \"chains\": chains_sorted,\n    \"occurencies\": occurencies_sorted\n}\nreturn result\n"
+      },
+      "code3": {
+        "dtype": [
+          "text",
+          "code",
+          "python"
+        ],
+        "resource": {
+          "filepath": "./cell-print-bprob.py",
+          "lib": false,
+          "mode": 5,
+          "save_policy": 1
+        },
+        "data": "import numpy as np\nnp.savetxt(output_file, fwd_bwd_result[\"Bprob\"],fmt='%.8f')\nreturn\n"
+      },
+      "code4": {
+        "dtype": [
+          "text",
+          "code",
+          "python"
+        ],
+        "resource": {
+          "filepath": "./cell-print_chains.py",
+          "lib": false,
+          "mode": 5,
+          "save_policy": 3
+        },
+        "data": "import numpy as np\n\nf1=open(\"chains.txt\",\"w\")\nf2=open(\"chains.occurencies\",\"w\")\nocc = result['occurencies']\nfor i, a in enumerate(result[\"chains\"]):\n    for j in a:\n        print(j+1, end=' ', file=f1)\n    print('',end='\\n',  file=f1)\n    print(occ[i], file=f2)\nf1.close()\nf2.close()\n\n\nreturn\n"
+      },
+      "ctx1": {
+        "type": "context",
+        "like_worker": true,
+        "like_cell": false,
+        "pins": {
+          "filepath": [
+            "ExportedInputPin",
+            "ctx1.rc.filepath"
+          ],
+          "latency": [
+            "ExportedInputPin",
+            "ctx1.rc.latency"
+          ],
+          "value": [
+            "ExportedEditPin",
+            "ctx1.rc.value"
+          ]
+        },
+        "auto": [
+          "cell1",
+          "cell2",
+          "cell3"
+        ],
+        "children": {
+          "cell1": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": "/cell-filelink-start.py",
+              "lib": true,
+              "mode": 2,
+              "save_policy": 1
+            },
+            "data": "if __name__ == \"__main__\":\n    #test with ipython -i\n    import sys, os\n\n    class dummy:\n        pass\n\n    class EditPin:\n        def __init__(self, value):\n            self.value = value\n            self.defined = True\n        def set(self, value):\n            print(\"SET\", value)\n            self.value = value\n        def get(self):\n            return self.value\n\n    class Getter:\n        def __init__(self, arg):\n            self.arg = arg\n        def get(self):\n            return self.arg\n    PINS = dummy()\n    PINS.value = EditPin(\"test\")\n    directory = sys.argv[1]\n    filename = sys.argv[2]\n    PINS.filepath = Getter(os.path.join(directory, filename))\n    PINS.latency = Getter(float(sys.argv[3]))\n    def serializer(v):\n        return str(v.get())\n    print(\"Edit in \" + filepath.get())\nelse:\n    from seamless.dtypes import serialize\n    def serializer(v):\n        return serialize(v._dtype, v.get())\n\n\nimport os, time, functools, traceback\nfrom threading import Thread, RLock, Event\nlast_value = None\nlast_serialized_value = None\nlast_exc = None\nlast_mtime = None\n\ndef write_file(fpath):\n    global last_mtime, last_value, last_serialized_value\n    if not PINS.value.defined:\n        last_mtime = -1 #will trigger a file read\n        return\n    if last_value == PINS.value.get():\n        return\n    val = serializer(PINS.value)\n    if last_serialized_value == val:\n        return\n    with lock:\n        if last_serialized_value != val:\n            #print(\"WRITE\", val)\n            if PINS.value._dtype == \"object\":\n                with open(fpath, \"wb\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            else:\n                with open(fpath, \"w\", encoding=\"utf-8\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            last_time = time.time()\n            try:\n                stat = os.stat(fpath)\n                last_mtime = stat.st_mtime\n            except Exception:\n                pass\n\nsleeptime = 0.01\n\ndef poll():\n    global last_time, last_mtime, last_value, last_serialized_value, last_exc\n    fpath = PINS.filepath.get()\n    while 1:\n        sleeps = int(PINS.latency.get() / sleeptime + 0.9999)\n        for n in range(sleeps):\n            time.sleep(sleeptime)\n            if terminate.is_set():\n                break\n        if terminate.is_set():\n            break\n        curr_time = time.time()\n        last_time = curr_time\n        if not os.path.exists(fpath):\n            try:\n                write_file(fpath)\n            except Exception:\n                exc = traceback.format_exc()\n                if exc != last_exc:\n                    print(exc)\n                    last_exc = exc\n        else:\n            with lock:\n                stat = os.stat(fpath)\n                try:\n                    if last_mtime is None or stat.st_mtime > last_mtime:\n                        data = None\n                        if PINS.value._dtype == \"object\":\n                            with open(fpath, \"rb\") as f:\n                                data = f.read()\n                        else:\n                            with open(fpath, encoding=\"utf-8\") as f:\n                                data = f.read()\n                        if data is not None:\n                            if last_serialized_value != data:\n                                #print(\"LOAD\")\n                                PINS.value.set(data)\n                                last_value = None\n                                last_serialized_value = data\n                        last_mtime = stat.st_mtime\n                except Exception:\n                    exc = traceback.format_exc()\n                    if exc != last_exc:\n                        print(exc)\n                        last_exc = exc\n\nterminate = Event()\nt = Thread(target=poll)\nt.setDaemon(True)\nlock = RLock()\nwrite_file(PINS.filepath.get())\nt.start()\n"
+          },
+          "cell2": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "write_file(PINS.filepath.get())"
+          },
+          "cell3": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "terminate.set(); t.join()"
+          },
+          "rc": {
+            "type": "reactor",
+            "mode": "sync",
+            "params": {
+              "filepath": {
+                "dtype": "str",
+                "pin": "input"
+              },
+              "latency": {
+                "dtype": "float",
+                "pin": "input"
+              },
+              "value": {
+                "dtype": [
+                  "text",
+                  "code",
+                  "ipython"
+                ],
+                "must_be_defined": false,
+                "pin": "edit"
+              }
+            }
+          }
+        }
+      },
+      "ctx2": {
+        "type": "context",
+        "like_worker": true,
+        "like_cell": false,
+        "pins": {
+          "filepath": [
+            "ExportedInputPin",
+            "ctx2.rc.filepath"
+          ],
+          "latency": [
+            "ExportedInputPin",
+            "ctx2.rc.latency"
+          ],
+          "value": [
+            "ExportedEditPin",
+            "ctx2.rc.value"
+          ]
+        },
+        "auto": [
+          "cell1",
+          "cell2",
+          "cell3"
+        ],
+        "children": {
+          "cell1": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": "/cell-filelink-start.py",
+              "lib": true,
+              "mode": 2,
+              "save_policy": 1
+            },
+            "data": "if __name__ == \"__main__\":\n    #test with ipython -i\n    import sys, os\n\n    class dummy:\n        pass\n\n    class EditPin:\n        def __init__(self, value):\n            self.value = value\n            self.defined = True\n        def set(self, value):\n            print(\"SET\", value)\n            self.value = value\n        def get(self):\n            return self.value\n\n    class Getter:\n        def __init__(self, arg):\n            self.arg = arg\n        def get(self):\n            return self.arg\n    PINS = dummy()\n    PINS.value = EditPin(\"test\")\n    directory = sys.argv[1]\n    filename = sys.argv[2]\n    PINS.filepath = Getter(os.path.join(directory, filename))\n    PINS.latency = Getter(float(sys.argv[3]))\n    def serializer(v):\n        return str(v.get())\n    print(\"Edit in \" + filepath.get())\nelse:\n    from seamless.dtypes import serialize\n    def serializer(v):\n        return serialize(v._dtype, v.get())\n\n\nimport os, time, functools, traceback\nfrom threading import Thread, RLock, Event\nlast_value = None\nlast_serialized_value = None\nlast_exc = None\nlast_mtime = None\n\ndef write_file(fpath):\n    global last_mtime, last_value, last_serialized_value\n    if not PINS.value.defined:\n        last_mtime = -1 #will trigger a file read\n        return\n    if last_value == PINS.value.get():\n        return\n    val = serializer(PINS.value)\n    if last_serialized_value == val:\n        return\n    with lock:\n        if last_serialized_value != val:\n            #print(\"WRITE\", val)\n            if PINS.value._dtype == \"object\":\n                with open(fpath, \"wb\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            else:\n                with open(fpath, \"w\", encoding=\"utf-8\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            last_time = time.time()\n            try:\n                stat = os.stat(fpath)\n                last_mtime = stat.st_mtime\n            except Exception:\n                pass\n\nsleeptime = 0.01\n\ndef poll():\n    global last_time, last_mtime, last_value, last_serialized_value, last_exc\n    fpath = PINS.filepath.get()\n    while 1:\n        sleeps = int(PINS.latency.get() / sleeptime + 0.9999)\n        for n in range(sleeps):\n            time.sleep(sleeptime)\n            if terminate.is_set():\n                break\n        if terminate.is_set():\n            break\n        curr_time = time.time()\n        last_time = curr_time\n        if not os.path.exists(fpath):\n            try:\n                write_file(fpath)\n            except Exception:\n                exc = traceback.format_exc()\n                if exc != last_exc:\n                    print(exc)\n                    last_exc = exc\n        else:\n            with lock:\n                stat = os.stat(fpath)\n                try:\n                    if last_mtime is None or stat.st_mtime > last_mtime:\n                        data = None\n                        if PINS.value._dtype == \"object\":\n                            with open(fpath, \"rb\") as f:\n                                data = f.read()\n                        else:\n                            with open(fpath, encoding=\"utf-8\") as f:\n                                data = f.read()\n                        if data is not None:\n                            if last_serialized_value != data:\n                                #print(\"LOAD\")\n                                PINS.value.set(data)\n                                last_value = None\n                                last_serialized_value = data\n                        last_mtime = stat.st_mtime\n                except Exception:\n                    exc = traceback.format_exc()\n                    if exc != last_exc:\n                        print(exc)\n                        last_exc = exc\n\nterminate = Event()\nt = Thread(target=poll)\nt.setDaemon(True)\nlock = RLock()\nwrite_file(PINS.filepath.get())\nt.start()\n"
+          },
+          "cell2": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "write_file(PINS.filepath.get())"
+          },
+          "cell3": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "terminate.set(); t.join()"
+          },
+          "rc": {
+            "type": "reactor",
+            "mode": "sync",
+            "params": {
+              "filepath": {
+                "dtype": "str",
+                "pin": "input"
+              },
+              "latency": {
+                "dtype": "float",
+                "pin": "input"
+              },
+              "value": {
+                "dtype": [
+                  "text",
+                  "code",
+                  "python"
+                ],
+                "must_be_defined": false,
+                "pin": "edit"
+              }
+            }
+          }
+        }
+      },
+      "ctx3": {
+        "type": "context",
+        "like_worker": true,
+        "like_cell": false,
+        "pins": {
+          "filepath": [
+            "ExportedInputPin",
+            "ctx3.rc.filepath"
+          ],
+          "latency": [
+            "ExportedInputPin",
+            "ctx3.rc.latency"
+          ],
+          "value": [
+            "ExportedEditPin",
+            "ctx3.rc.value"
+          ]
+        },
+        "auto": [
+          "cell1",
+          "cell2",
+          "cell3"
+        ],
+        "children": {
+          "cell1": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": "/cell-filelink-start.py",
+              "lib": true,
+              "mode": 2,
+              "save_policy": 1
+            },
+            "data": "if __name__ == \"__main__\":\n    #test with ipython -i\n    import sys, os\n\n    class dummy:\n        pass\n\n    class EditPin:\n        def __init__(self, value):\n            self.value = value\n            self.defined = True\n        def set(self, value):\n            print(\"SET\", value)\n            self.value = value\n        def get(self):\n            return self.value\n\n    class Getter:\n        def __init__(self, arg):\n            self.arg = arg\n        def get(self):\n            return self.arg\n    PINS = dummy()\n    PINS.value = EditPin(\"test\")\n    directory = sys.argv[1]\n    filename = sys.argv[2]\n    PINS.filepath = Getter(os.path.join(directory, filename))\n    PINS.latency = Getter(float(sys.argv[3]))\n    def serializer(v):\n        return str(v.get())\n    print(\"Edit in \" + filepath.get())\nelse:\n    from seamless.dtypes import serialize\n    def serializer(v):\n        return serialize(v._dtype, v.get())\n\n\nimport os, time, functools, traceback\nfrom threading import Thread, RLock, Event\nlast_value = None\nlast_serialized_value = None\nlast_exc = None\nlast_mtime = None\n\ndef write_file(fpath):\n    global last_mtime, last_value, last_serialized_value\n    if not PINS.value.defined:\n        last_mtime = -1 #will trigger a file read\n        return\n    if last_value == PINS.value.get():\n        return\n    val = serializer(PINS.value)\n    if last_serialized_value == val:\n        return\n    with lock:\n        if last_serialized_value != val:\n            #print(\"WRITE\", val)\n            if PINS.value._dtype == \"object\":\n                with open(fpath, \"wb\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            else:\n                with open(fpath, \"w\", encoding=\"utf-8\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            last_time = time.time()\n            try:\n                stat = os.stat(fpath)\n                last_mtime = stat.st_mtime\n            except Exception:\n                pass\n\nsleeptime = 0.01\n\ndef poll():\n    global last_time, last_mtime, last_value, last_serialized_value, last_exc\n    fpath = PINS.filepath.get()\n    while 1:\n        sleeps = int(PINS.latency.get() / sleeptime + 0.9999)\n        for n in range(sleeps):\n            time.sleep(sleeptime)\n            if terminate.is_set():\n                break\n        if terminate.is_set():\n            break\n        curr_time = time.time()\n        last_time = curr_time\n        if not os.path.exists(fpath):\n            try:\n                write_file(fpath)\n            except Exception:\n                exc = traceback.format_exc()\n                if exc != last_exc:\n                    print(exc)\n                    last_exc = exc\n        else:\n            with lock:\n                stat = os.stat(fpath)\n                try:\n                    if last_mtime is None or stat.st_mtime > last_mtime:\n                        data = None\n                        if PINS.value._dtype == \"object\":\n                            with open(fpath, \"rb\") as f:\n                                data = f.read()\n                        else:\n                            with open(fpath, encoding=\"utf-8\") as f:\n                                data = f.read()\n                        if data is not None:\n                            if last_serialized_value != data:\n                                #print(\"LOAD\")\n                                PINS.value.set(data)\n                                last_value = None\n                                last_serialized_value = data\n                        last_mtime = stat.st_mtime\n                except Exception:\n                    exc = traceback.format_exc()\n                    if exc != last_exc:\n                        print(exc)\n                        last_exc = exc\n\nterminate = Event()\nt = Thread(target=poll)\nt.setDaemon(True)\nlock = RLock()\nwrite_file(PINS.filepath.get())\nt.start()\n"
+          },
+          "cell2": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "write_file(PINS.filepath.get())"
+          },
+          "cell3": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "terminate.set(); t.join()"
+          },
+          "rc": {
+            "type": "reactor",
+            "mode": "sync",
+            "params": {
+              "filepath": {
+                "dtype": "str",
+                "pin": "input"
+              },
+              "latency": {
+                "dtype": "float",
+                "pin": "input"
+              },
+              "value": {
+                "dtype": [
+                  "text",
+                  "code",
+                  "ipython"
+                ],
+                "must_be_defined": false,
+                "pin": "edit"
+              }
+            }
+          }
+        }
+      },
+      "ctx4": {
+        "type": "context",
+        "like_worker": true,
+        "like_cell": false,
+        "pins": {
+          "filepath": [
+            "ExportedInputPin",
+            "ctx4.rc.filepath"
+          ],
+          "latency": [
+            "ExportedInputPin",
+            "ctx4.rc.latency"
+          ],
+          "value": [
+            "ExportedEditPin",
+            "ctx4.rc.value"
+          ]
+        },
+        "auto": [
+          "cell1",
+          "cell2",
+          "cell3"
+        ],
+        "children": {
+          "cell1": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": "/cell-filelink-start.py",
+              "lib": true,
+              "mode": 2,
+              "save_policy": 1
+            },
+            "data": "if __name__ == \"__main__\":\n    #test with ipython -i\n    import sys, os\n\n    class dummy:\n        pass\n\n    class EditPin:\n        def __init__(self, value):\n            self.value = value\n            self.defined = True\n        def set(self, value):\n            print(\"SET\", value)\n            self.value = value\n        def get(self):\n            return self.value\n\n    class Getter:\n        def __init__(self, arg):\n            self.arg = arg\n        def get(self):\n            return self.arg\n    PINS = dummy()\n    PINS.value = EditPin(\"test\")\n    directory = sys.argv[1]\n    filename = sys.argv[2]\n    PINS.filepath = Getter(os.path.join(directory, filename))\n    PINS.latency = Getter(float(sys.argv[3]))\n    def serializer(v):\n        return str(v.get())\n    print(\"Edit in \" + filepath.get())\nelse:\n    from seamless.dtypes import serialize\n    def serializer(v):\n        return serialize(v._dtype, v.get())\n\n\nimport os, time, functools, traceback\nfrom threading import Thread, RLock, Event\nlast_value = None\nlast_serialized_value = None\nlast_exc = None\nlast_mtime = None\n\ndef write_file(fpath):\n    global last_mtime, last_value, last_serialized_value\n    if not PINS.value.defined:\n        last_mtime = -1 #will trigger a file read\n        return\n    if last_value == PINS.value.get():\n        return\n    val = serializer(PINS.value)\n    if last_serialized_value == val:\n        return\n    with lock:\n        if last_serialized_value != val:\n            #print(\"WRITE\", val)\n            if PINS.value._dtype == \"object\":\n                with open(fpath, \"wb\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            else:\n                with open(fpath, \"w\", encoding=\"utf-8\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            last_time = time.time()\n            try:\n                stat = os.stat(fpath)\n                last_mtime = stat.st_mtime\n            except Exception:\n                pass\n\nsleeptime = 0.01\n\ndef poll():\n    global last_time, last_mtime, last_value, last_serialized_value, last_exc\n    fpath = PINS.filepath.get()\n    while 1:\n        sleeps = int(PINS.latency.get() / sleeptime + 0.9999)\n        for n in range(sleeps):\n            time.sleep(sleeptime)\n            if terminate.is_set():\n                break\n        if terminate.is_set():\n            break\n        curr_time = time.time()\n        last_time = curr_time\n        if not os.path.exists(fpath):\n            try:\n                write_file(fpath)\n            except Exception:\n                exc = traceback.format_exc()\n                if exc != last_exc:\n                    print(exc)\n                    last_exc = exc\n        else:\n            with lock:\n                stat = os.stat(fpath)\n                try:\n                    if last_mtime is None or stat.st_mtime > last_mtime:\n                        data = None\n                        if PINS.value._dtype == \"object\":\n                            with open(fpath, \"rb\") as f:\n                                data = f.read()\n                        else:\n                            with open(fpath, encoding=\"utf-8\") as f:\n                                data = f.read()\n                        if data is not None:\n                            if last_serialized_value != data:\n                                #print(\"LOAD\")\n                                PINS.value.set(data)\n                                last_value = None\n                                last_serialized_value = data\n                        last_mtime = stat.st_mtime\n                except Exception:\n                    exc = traceback.format_exc()\n                    if exc != last_exc:\n                        print(exc)\n                        last_exc = exc\n\nterminate = Event()\nt = Thread(target=poll)\nt.setDaemon(True)\nlock = RLock()\nwrite_file(PINS.filepath.get())\nt.start()\n"
+          },
+          "cell2": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "write_file(PINS.filepath.get())"
+          },
+          "cell3": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "terminate.set(); t.join()"
+          },
+          "rc": {
+            "type": "reactor",
+            "mode": "sync",
+            "params": {
+              "filepath": {
+                "dtype": "str",
+                "pin": "input"
+              },
+              "latency": {
+                "dtype": "float",
+                "pin": "input"
+              },
+              "value": {
+                "dtype": [
+                  "text",
+                  "code",
+                  "python"
+                ],
+                "must_be_defined": false,
+                "pin": "edit"
+              }
+            }
+          }
+        }
+      },
+      "ctx5": {
+        "type": "context",
+        "like_worker": true,
+        "like_cell": false,
+        "pins": {
+          "maximum": [
+            "ExportedInputPin",
+            "ctx5.rc.maximum"
+          ],
+          "title": [
+            "ExportedInputPin",
+            "ctx5.rc.title"
+          ],
+          "value": [
+            "ExportedEditPin",
+            "ctx5.rc.value"
+          ]
+        },
+        "auto": [
+          "cell1",
+          "cell2",
+          "cell3",
+          "cell4",
+          "cell5"
+        ],
+        "children": {
+          "cell1": {
+            "dtype": "str",
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "Number of samples"
+          },
+          "cell2": {
+            "dtype": "int",
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "9999999"
+          },
+          "cell3": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": "/gui/cell-basic_editor_int.py",
+              "lib": true,
+              "mode": 2,
+              "save_policy": 1
+            },
+            "data": "from seamless.qt.QtWidgets import QSpinBox, QWidget, QVBoxLayout\nfrom seamless.qt.QtCore import Qt\n\nw = QWidget()\n#w.setWindowFlags(Qt.WindowStaysOnTopHint)\nw.setAttribute(Qt.WA_ShowWithoutActivating)\nvbox = QVBoxLayout()\nvbox.addStretch(1)\nw.setLayout(vbox)\nw.resize(300,100)\nw.setWindowTitle(PINS.title.get())\nw.show()\nb = QSpinBox()\nb.setMaximum(1000000)\nif PINS.value.defined:\n    b.setValue(PINS.value.get())\nvbox.addWidget(b)\nb.valueChanged.connect(PINS.value.set)\n"
+          },
+          "cell4": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "w.destroy()"
+          },
+          "cell5": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": "/gui/cell-basic_editor_int_UPDATE.py",
+              "lib": true,
+              "mode": 2,
+              "save_policy": 1
+            },
+            "data": "if PINS.value.updated:\n    b.setValue(PINS.value.get())\nif PINS.title.updated:\n    w.setWindowTitle(PINS.title.get())\nif PINS.maximum.updated:\n    b.setMaximum(PINS.maximum.get())\n",
+            "owner": "ctx5.rc.code_update"
+          },
+          "rc": {
+            "type": "reactor",
+            "mode": "sync",
+            "params": {
+              "maximum": {
+                "dtype": "int",
+                "pin": "input"
+              },
+              "title": {
+                "dtype": "str",
+                "pin": "input"
+              },
+              "value": {
+                "dtype": "int",
+                "must_be_defined": false,
+                "pin": "edit"
+              }
+            }
+          }
+        }
+      },
+      "ctx6": {
+        "type": "context",
+        "like_worker": true,
+        "like_cell": false,
+        "pins": {
+          "filepath": [
+            "ExportedInputPin",
+            "ctx6.rc.filepath"
+          ],
+          "latency": [
+            "ExportedInputPin",
+            "ctx6.rc.latency"
+          ],
+          "value": [
+            "ExportedEditPin",
+            "ctx6.rc.value"
+          ]
+        },
+        "auto": [
+          "cell1",
+          "cell2",
+          "cell3"
+        ],
+        "children": {
+          "cell1": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": "/cell-filelink-start.py",
+              "lib": true,
+              "mode": 2,
+              "save_policy": 1
+            },
+            "data": "if __name__ == \"__main__\":\n    #test with ipython -i\n    import sys, os\n\n    class dummy:\n        pass\n\n    class EditPin:\n        def __init__(self, value):\n            self.value = value\n            self.defined = True\n        def set(self, value):\n            print(\"SET\", value)\n            self.value = value\n        def get(self):\n            return self.value\n\n    class Getter:\n        def __init__(self, arg):\n            self.arg = arg\n        def get(self):\n            return self.arg\n    PINS = dummy()\n    PINS.value = EditPin(\"test\")\n    directory = sys.argv[1]\n    filename = sys.argv[2]\n    PINS.filepath = Getter(os.path.join(directory, filename))\n    PINS.latency = Getter(float(sys.argv[3]))\n    def serializer(v):\n        return str(v.get())\n    print(\"Edit in \" + filepath.get())\nelse:\n    from seamless.dtypes import serialize\n    def serializer(v):\n        return serialize(v._dtype, v.get())\n\n\nimport os, time, functools, traceback\nfrom threading import Thread, RLock, Event\nlast_value = None\nlast_serialized_value = None\nlast_exc = None\nlast_mtime = None\n\ndef write_file(fpath):\n    global last_mtime, last_value, last_serialized_value\n    if not PINS.value.defined:\n        last_mtime = -1 #will trigger a file read\n        return\n    if last_value == PINS.value.get():\n        return\n    val = serializer(PINS.value)\n    if last_serialized_value == val:\n        return\n    with lock:\n        if last_serialized_value != val:\n            #print(\"WRITE\", val)\n            if PINS.value._dtype == \"object\":\n                with open(fpath, \"wb\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            else:\n                with open(fpath, \"w\", encoding=\"utf-8\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            last_time = time.time()\n            try:\n                stat = os.stat(fpath)\n                last_mtime = stat.st_mtime\n            except Exception:\n                pass\n\nsleeptime = 0.01\n\ndef poll():\n    global last_time, last_mtime, last_value, last_serialized_value, last_exc\n    fpath = PINS.filepath.get()\n    while 1:\n        sleeps = int(PINS.latency.get() / sleeptime + 0.9999)\n        for n in range(sleeps):\n            time.sleep(sleeptime)\n            if terminate.is_set():\n                break\n        if terminate.is_set():\n            break\n        curr_time = time.time()\n        last_time = curr_time\n        if not os.path.exists(fpath):\n            try:\n                write_file(fpath)\n            except Exception:\n                exc = traceback.format_exc()\n                if exc != last_exc:\n                    print(exc)\n                    last_exc = exc\n        else:\n            with lock:\n                stat = os.stat(fpath)\n                try:\n                    if last_mtime is None or stat.st_mtime > last_mtime:\n                        data = None\n                        if PINS.value._dtype == \"object\":\n                            with open(fpath, \"rb\") as f:\n                                data = f.read()\n                        else:\n                            with open(fpath, encoding=\"utf-8\") as f:\n                                data = f.read()\n                        if data is not None:\n                            if last_serialized_value != data:\n                                #print(\"LOAD\")\n                                PINS.value.set(data)\n                                last_value = None\n                                last_serialized_value = data\n                        last_mtime = stat.st_mtime\n                except Exception:\n                    exc = traceback.format_exc()\n                    if exc != last_exc:\n                        print(exc)\n                        last_exc = exc\n\nterminate = Event()\nt = Thread(target=poll)\nt.setDaemon(True)\nlock = RLock()\nwrite_file(PINS.filepath.get())\nt.start()\n"
+          },
+          "cell2": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "write_file(PINS.filepath.get())"
+          },
+          "cell3": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "terminate.set(); t.join()"
+          },
+          "rc": {
+            "type": "reactor",
+            "mode": "sync",
+            "params": {
+              "filepath": {
+                "dtype": "str",
+                "pin": "input"
+              },
+              "latency": {
+                "dtype": "float",
+                "pin": "input"
+              },
+              "value": {
+                "dtype": [
+                  "text",
+                  "code",
+                  "python"
+                ],
+                "must_be_defined": false,
+                "pin": "edit"
+              }
+            }
+          }
+        }
+      },
+      "ctx7": {
+        "type": "context",
+        "like_worker": true,
+        "like_cell": false,
+        "pins": {
+          "filepath": [
+            "ExportedInputPin",
+            "ctx7.rc.filepath"
+          ],
+          "latency": [
+            "ExportedInputPin",
+            "ctx7.rc.latency"
+          ],
+          "value": [
+            "ExportedEditPin",
+            "ctx7.rc.value"
+          ]
+        },
+        "auto": [
+          "cell1",
+          "cell2",
+          "cell3"
+        ],
+        "children": {
+          "cell1": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": "/cell-filelink-start.py",
+              "lib": true,
+              "mode": 2,
+              "save_policy": 1
+            },
+            "data": "if __name__ == \"__main__\":\n    #test with ipython -i\n    import sys, os\n\n    class dummy:\n        pass\n\n    class EditPin:\n        def __init__(self, value):\n            self.value = value\n            self.defined = True\n        def set(self, value):\n            print(\"SET\", value)\n            self.value = value\n        def get(self):\n            return self.value\n\n    class Getter:\n        def __init__(self, arg):\n            self.arg = arg\n        def get(self):\n            return self.arg\n    PINS = dummy()\n    PINS.value = EditPin(\"test\")\n    directory = sys.argv[1]\n    filename = sys.argv[2]\n    PINS.filepath = Getter(os.path.join(directory, filename))\n    PINS.latency = Getter(float(sys.argv[3]))\n    def serializer(v):\n        return str(v.get())\n    print(\"Edit in \" + filepath.get())\nelse:\n    from seamless.dtypes import serialize\n    def serializer(v):\n        return serialize(v._dtype, v.get())\n\n\nimport os, time, functools, traceback\nfrom threading import Thread, RLock, Event\nlast_value = None\nlast_serialized_value = None\nlast_exc = None\nlast_mtime = None\n\ndef write_file(fpath):\n    global last_mtime, last_value, last_serialized_value\n    if not PINS.value.defined:\n        last_mtime = -1 #will trigger a file read\n        return\n    if last_value == PINS.value.get():\n        return\n    val = serializer(PINS.value)\n    if last_serialized_value == val:\n        return\n    with lock:\n        if last_serialized_value != val:\n            #print(\"WRITE\", val)\n            if PINS.value._dtype == \"object\":\n                with open(fpath, \"wb\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            else:\n                with open(fpath, \"w\", encoding=\"utf-8\") as f:\n                    f.write(val)\n                    last_value = PINS.value.get()\n                    last_serialized_value = val\n            last_time = time.time()\n            try:\n                stat = os.stat(fpath)\n                last_mtime = stat.st_mtime\n            except Exception:\n                pass\n\nsleeptime = 0.01\n\ndef poll():\n    global last_time, last_mtime, last_value, last_serialized_value, last_exc\n    fpath = PINS.filepath.get()\n    while 1:\n        sleeps = int(PINS.latency.get() / sleeptime + 0.9999)\n        for n in range(sleeps):\n            time.sleep(sleeptime)\n            if terminate.is_set():\n                break\n        if terminate.is_set():\n            break\n        curr_time = time.time()\n        last_time = curr_time\n        if not os.path.exists(fpath):\n            try:\n                write_file(fpath)\n            except Exception:\n                exc = traceback.format_exc()\n                if exc != last_exc:\n                    print(exc)\n                    last_exc = exc\n        else:\n            with lock:\n                stat = os.stat(fpath)\n                try:\n                    if last_mtime is None or stat.st_mtime > last_mtime:\n                        data = None\n                        if PINS.value._dtype == \"object\":\n                            with open(fpath, \"rb\") as f:\n                                data = f.read()\n                        else:\n                            with open(fpath, encoding=\"utf-8\") as f:\n                                data = f.read()\n                        if data is not None:\n                            if last_serialized_value != data:\n                                #print(\"LOAD\")\n                                PINS.value.set(data)\n                                last_value = None\n                                last_serialized_value = data\n                        last_mtime = stat.st_mtime\n                except Exception:\n                    exc = traceback.format_exc()\n                    if exc != last_exc:\n                        print(exc)\n                        last_exc = exc\n\nterminate = Event()\nt = Thread(target=poll)\nt.setDaemon(True)\nlock = RLock()\nwrite_file(PINS.filepath.get())\nt.start()\n"
+          },
+          "cell2": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "write_file(PINS.filepath.get())"
+          },
+          "cell3": {
+            "dtype": [
+              "text",
+              "code",
+              "python"
+            ],
+            "resource": {
+              "filepath": null,
+              "lib": null,
+              "mode": null,
+              "save_policy": 1
+            },
+            "data": "terminate.set(); t.join()"
+          },
+          "rc": {
+            "type": "reactor",
+            "mode": "sync",
+            "params": {
+              "filepath": {
+                "dtype": "str",
+                "pin": "input"
+              },
+              "latency": {
+                "dtype": "float",
+                "pin": "input"
+              },
+              "value": {
+                "dtype": [
+                  "text",
+                  "code",
+                  "python"
+                ],
+                "must_be_defined": false,
+                "pin": "edit"
+              }
+            }
+          }
+        }
+      },
+      "lib_backtrack": {
+        "dtype": [
+          "text",
+          "code",
+          "ipython"
+        ],
+        "resource": {
+          "filepath": "./lib_backtrack.py",
+          "lib": false,
+          "mode": 5,
+          "save_policy": 1
+        },
+        "data": "%load_ext Cython\n\n%%cython -a\nimport random\nimport numpy as np\ncimport numpy as np\ncimport cython\n@cython.boundscheck(False) # turn off bounds-checking for entire function\n@cython.wraparound(False)  # turn off negative index wrapping for entire function\n@cython.cdivision(True)\ncdef int find_neighbours(np.ndarray[np.int_t, ndim=2] interaction, int p, np.ndarray[np.int_t, ndim=1] neighbours):\n    cdef int Nb_neighbours\n    cdef int n_inter\n    with nogil:\n        Nb_neighbours = 0\n        for n_inter in range(interaction.shape[0]):\n            if interaction[n_inter,0] == p:\n                neighbours[Nb_neighbours] = interaction[n_inter,1]\n                Nb_neighbours += 1\n    return Nb_neighbours\n#\n@cython.boundscheck(False) # turn off bounds-checking for entire function\n@cython.wraparound(False)  # turn off negative index wrapping for entire function\n@cython.cdivision(True)\ncdef void stochastic_backtrack_rec(np.ndarray[np.float_t,ndim=1] energies, int frag, \\\n  np.ndarray[np.float_t,ndim=2] z, interactions,np.ndarray[np.int_t,ndim=1] neighbours, \\\n  np.ndarray[np.int_t,ndim=2] chains, int curr_chain, np.ndarray[np.float_t,ndim=2] rand\n):\n    cdef int nfrags, Nb_neighbours, nextelem, nr, previouselem, selected\n    cdef float count\n    cdef double threshold\n    nfrags = z.shape[0]\n    threshold = rand[curr_chain, frag+1]\n    count = 0\n    previouselem = chains[curr_chain, frag]\n    Nb_neighbours = find_neighbours(interactions[frag], previouselem, neighbours)\n    selected = neighbours[Nb_neighbours-1]\n    #assert abs(sum([energies[i] * z[frag+1,i] / z[frag,p] for i in neighbours[:Nb_neighbours] ] ) - 1) < 0.0001\n    for nr in range(Nb_neighbours):\n        nextelem = neighbours[nr]\n        count += energies[nextelem] * z[frag+1,nextelem] / z[frag,previouselem]\n        if count > threshold:\n            selected = nextelem\n            break\n    chains[curr_chain,frag+1] = selected\n    if frag < nfrags - 2:\n        stochastic_backtrack_rec(energies, frag+1, z, interactions, neighbours, chains, curr_chain, rand)\n#####\n@cython.boundscheck(False) # turn off bounds-checking for entire function\n@cython.wraparound(False)  # turn off negative index wrapping for entire function\n@cython.cdivision(True)\ndef stochastic_backtrack(np.ndarray[np.float_t,ndim=1] energies, double Z, np.ndarray[np.float_t,ndim=2] z, interactions, int num_samples):\n    cdef int firstelem, selected, nfrags, nposes, curr_chain\n    cdef double threshold, count\n    cdef np.ndarray[np.float_t,ndim=2] rand\n    cdef np.ndarray[np.int_t,ndim=2] chains\n    nfrags, nposes = z.shape[0], z.shape[1]\n    rand = np.random.random((num_samples, nfrags))\n    neighbours = np.zeros(nposes, dtype=int)\n    chains = np.zeros((num_samples, nfrags),dtype=int)\n    for curr_chain in range(num_samples):\n        if not curr_chain%100:\n            print(curr_chain)\n        threshold = rand[curr_chain, 0]\n        count = 0\n        selected = nposes - 1\n        for firstelem in range(nposes):\n            count += energies[firstelem] * z[0,firstelem] / Z\n            if count > threshold:\n                selected = firstelem\n                break\n        chains[curr_chain,0] = selected\n        stochastic_backtrack_rec(energies, 0, z, interactions, neighbours, chains, curr_chain, rand)\n    uniq_chains, occurencies = np.unique(chains, return_counts=True, axis=0)\n    return uniq_chains, occurencies\n#    return chains, chains[:,0] #####\n\ncython_html = _.data\n"
+      },
+      "lib_fwd_bwd": {
+        "dtype": [
+          "text",
+          "code",
+          "ipython"
+        ],
+        "resource": {
+          "filepath": "./lib_fwd_bwd.py",
+          "lib": false,
+          "mode": 5,
+          "save_policy": 1
+        },
+        "data": "import sys\nimport numpy as np\nimport json\nimport math\n\n%load_ext Cython\n\ndef map_npz(npz_file):\n    print(\"map_npz\",file=sys.stderr)\n    sys.stderr.flush()\n    npz = np.load(npz_file)\n    nfrags = npz[\"nfrags\"]\n    poses, interactions =  [], []\n    print(999)\n    for n in range(nfrags-1):\n        inter = npz[\"interactions-%d\"%n]\n        interactions.append(inter)\n        poses.append(np.unique(inter[:,0]))\n    poses.append(np.unique(inter[:,1]))\n    npz = []\n    #interactions = [ np.array(i, dtype=int) for i in inter]\n    return interactions, poses\n\ndef map_json(json_file):\n    j = json.load(open(json_file))\n    interactions = j['interactions']\n    clusters = j['clusters']\n    poses = [[ int(i['ranks'][0])-1 for i in cluster] for cluster in clusters]\n    mapped_interactions = [[[poses[i][j[0]], poses[i+1][j[1]]] for j in interactions[i]] for i in range(len(interactions))]\n    j=[]\n    return mapped_interactions, poses\n\ndef store_energies(scores_file,RT):\n    f = open(scores_file,\"r\")\n    energies = [math.exp(-float(l)/RT) for l in f.readlines()]\n    f.close()\n    return energies\n\ndef fwd(energies, interactions):\n    nposes = len(energies)\n    nfrags = len(interactions) + 1\n    zbar = np.zeros((nfrags,nposes))\n    zbar[-1] = 1.0\n    for frag in range(nfrags-2, -1,-1):\n        for inter in interactions[frag]:\n            previouselem = inter[0]\n            nextelem = inter[1]\n            zbar[frag, previouselem] += energies[nextelem] * zbar[frag+1, nextelem]\n    return zbar\n\ndef bwd(energies, interactions):\n    nposes = len(energies)\n    nfrags = len(interactions) + 1\n    ybar = np.zeros((nfrags,nposes))\n    ybar[0] = 1.0\n    for frag in range(1, nfrags):\n        for inter in interactions[frag-1]:\n            previouselem = inter[0]\n            nextelem = inter[1]\n            ybar[frag, nextelem] += energies[previouselem]  * ybar[frag-1, previouselem]\n    return ybar\n\n\n'''\ndef map_npz(npz_file):\n    print(\"map_npz\",file=sys.stderr)\n    sys.stderr.flush()\n    npz = np.load(npz_file)\n    nfrags = npz[\"nfrags\"]\n    clusters, inter =  [], []\n    for n in range(nfrags-1):\n        inter.append(npz[\"interactions-%d\" % (n)])\n    for n in range(nfrags):\n        clusters.append(npz[\"clusters-%d\" % (n)])\n    npz = []\n    p = [[ int(i)-1 for i in cluster] for cluster in clusters]\n    interactions = [ np.array([[p[i][j[0]], p[i+1][j[1]]] for j in inter[i]], dtype=int) for i in range(len(inter))]\n    return interactions, p\n'''\n"
+      },
+      "num_samples": {
+        "dtype": "int",
+        "resource": {
+          "filepath": null,
+          "lib": null,
+          "mode": null,
+          "save_policy": 1
+        },
+        "data": "1"
+      },
+      "registrar_object1": {
+        "registrar": "ipython",
+        "registered": [
+          "exit",
+          "json",
+          "In",
+          "math",
+          "sys",
+          "bwd",
+          "get_ipython",
+          "map_npz",
+          "Out",
+          "store_energies",
+          "np",
+          "fwd",
+          "quit",
+          "map_json"
+        ],
+        "data": "import sys\nimport numpy as np\nimport json\nimport math\n\n%load_ext Cython\n\ndef map_npz(npz_file):\n    print(\"map_npz\",file=sys.stderr)\n    sys.stderr.flush()\n    npz = np.load(npz_file)\n    nfrags = npz[\"nfrags\"]\n    poses, interactions =  [], []\n    print(999)\n    for n in range(nfrags-1):\n        inter = npz[\"interactions-%d\"%n]\n        interactions.append(inter)\n        poses.append(np.unique(inter[:,0]))\n    poses.append(np.unique(inter[:,1]))\n    npz = []\n    #interactions = [ np.array(i, dtype=int) for i in inter]\n    return interactions, poses\n\ndef map_json(json_file):\n    j = json.load(open(json_file))\n    interactions = j['interactions']\n    clusters = j['clusters']\n    poses = [[ int(i['ranks'][0])-1 for i in cluster] for cluster in clusters]\n    mapped_interactions = [[[poses[i][j[0]], poses[i+1][j[1]]] for j in interactions[i]] for i in range(len(interactions))]\n    j=[]\n    return mapped_interactions, poses\n\ndef store_energies(scores_file,RT):\n    f = open(scores_file,\"r\")\n    energies = [math.exp(-float(l)/RT) for l in f.readlines()]\n    f.close()\n    return energies\n\ndef fwd(energies, interactions):\n    nposes = len(energies)\n    nfrags = len(interactions) + 1\n    zbar = np.zeros((nfrags,nposes))\n    zbar[-1] = 1.0\n    for frag in range(nfrags-2, -1,-1):\n        for inter in interactions[frag]:\n            previouselem = inter[0]\n            nextelem = inter[1]\n            zbar[frag, previouselem] += energies[nextelem] * zbar[frag+1, nextelem]\n    return zbar\n\ndef bwd(energies, interactions):\n    nposes = len(energies)\n    nfrags = len(interactions) + 1\n    ybar = np.zeros((nfrags,nposes))\n    ybar[0] = 1.0\n    for frag in range(1, nfrags):\n        for inter in interactions[frag-1]:\n            previouselem = inter[0]\n            nextelem = inter[1]\n            ybar[frag, nextelem] += energies[previouselem]  * ybar[frag-1, previouselem]\n    return ybar\n\n\n'''\ndef map_npz(npz_file):\n    print(\"map_npz\",file=sys.stderr)\n    sys.stderr.flush()\n    npz = np.load(npz_file)\n    nfrags = npz[\"nfrags\"]\n    clusters, inter =  [], []\n    for n in range(nfrags-1):\n        inter.append(npz[\"interactions-%d\" % (n)])\n    for n in range(nfrags):\n        clusters.append(npz[\"clusters-%d\" % (n)])\n    npz = []\n    p = [[ int(i)-1 for i in cluster] for cluster in clusters]\n    interactions = [ np.array([[p[i][j[0]], p[i+1][j[1]]] for j in inter[i]], dtype=int) for i in range(len(inter))]\n    return interactions, p\n'''\n",
+        "data_name": null
+      },
+      "registrar_object2": {
+        "registrar": "ipython",
+        "registered": [
+          "quit",
+          "np",
+          "In",
+          "exit",
+          "Out",
+          "random",
+          "stochastic_backtrack",
+          "cython_html",
+          "get_ipython"
+        ],
+        "data": "%load_ext Cython\n\n%%cython -a\nimport random\nimport numpy as np\ncimport numpy as np\ncimport cython\n@cython.boundscheck(False) # turn off bounds-checking for entire function\n@cython.wraparound(False)  # turn off negative index wrapping for entire function\n@cython.cdivision(True)\ncdef int find_neighbours(np.ndarray[np.int_t, ndim=2] interaction, int p, np.ndarray[np.int_t, ndim=1] neighbours):\n    cdef int Nb_neighbours\n    cdef int n_inter\n    with nogil:\n        Nb_neighbours = 0\n        for n_inter in range(interaction.shape[0]):\n            if interaction[n_inter,0] == p:\n                neighbours[Nb_neighbours] = interaction[n_inter,1]\n                Nb_neighbours += 1\n    return Nb_neighbours\n#\n@cython.boundscheck(False) # turn off bounds-checking for entire function\n@cython.wraparound(False)  # turn off negative index wrapping for entire function\n@cython.cdivision(True)\ncdef void stochastic_backtrack_rec(np.ndarray[np.float_t,ndim=1] energies, int frag, \\\n  np.ndarray[np.float_t,ndim=2] z, interactions,np.ndarray[np.int_t,ndim=1] neighbours, \\\n  np.ndarray[np.int_t,ndim=2] chains, int curr_chain, np.ndarray[np.float_t,ndim=2] rand\n):\n    cdef int nfrags, Nb_neighbours, nextelem, nr, previouselem, selected\n    cdef float count\n    cdef double threshold\n    nfrags = z.shape[0]\n    threshold = rand[curr_chain, frag+1]\n    count = 0\n    previouselem = chains[curr_chain, frag]\n    Nb_neighbours = find_neighbours(interactions[frag], previouselem, neighbours)\n    selected = neighbours[Nb_neighbours-1]\n    #assert abs(sum([energies[i] * z[frag+1,i] / z[frag,p] for i in neighbours[:Nb_neighbours] ] ) - 1) < 0.0001\n    for nr in range(Nb_neighbours):\n        nextelem = neighbours[nr]\n        count += energies[nextelem] * z[frag+1,nextelem] / z[frag,previouselem]\n        if count > threshold:\n            selected = nextelem\n            break\n    chains[curr_chain,frag+1] = selected\n    if frag < nfrags - 2:\n        stochastic_backtrack_rec(energies, frag+1, z, interactions, neighbours, chains, curr_chain, rand)\n#####\n@cython.boundscheck(False) # turn off bounds-checking for entire function\n@cython.wraparound(False)  # turn off negative index wrapping for entire function\n@cython.cdivision(True)\ndef stochastic_backtrack(np.ndarray[np.float_t,ndim=1] energies, double Z, np.ndarray[np.float_t,ndim=2] z, interactions, int num_samples):\n    cdef int firstelem, selected, nfrags, nposes, curr_chain\n    cdef double threshold, count\n    cdef np.ndarray[np.float_t,ndim=2] rand\n    cdef np.ndarray[np.int_t,ndim=2] chains\n    nfrags, nposes = z.shape[0], z.shape[1]\n    rand = np.random.random((num_samples, nfrags))\n    neighbours = np.zeros(nposes, dtype=int)\n    chains = np.zeros((num_samples, nfrags),dtype=int)\n    for curr_chain in range(num_samples):\n        if not curr_chain%100:\n            print(curr_chain)\n        threshold = rand[curr_chain, 0]\n        count = 0\n        selected = nposes - 1\n        for firstelem in range(nposes):\n            count += energies[firstelem] * z[0,firstelem] / Z\n            if count > threshold:\n                selected = firstelem\n                break\n        chains[curr_chain,0] = selected\n        stochastic_backtrack_rec(energies, 0, z, interactions, neighbours, chains, curr_chain, rand)\n    uniq_chains, occurencies = np.unique(chains, return_counts=True, axis=0)\n    return uniq_chains, occurencies\n#    return chains, chains[:,0] #####\n\ncython_html = _.data\n",
+        "data_name": null
+      },
+      "tf_fwd_bwd": {
+        "type": "transformer",
+        "mode": "thread",
+        "params": {
+          "npz_file": {
+            "dtype": "str",
+            "pin": "input"
+          },
+          "result": {
+            "dtype": "object",
+            "pin": "output"
+          },
+          "scores_file": {
+            "dtype": "str",
+            "pin": "input"
+          }
+        }
+      },
+      "tf_print_bprob": {
+        "type": "transformer",
+        "mode": "thread",
+        "params": {
+          "fwd_bwd_result": {
+            "dtype": "object",
+            "pin": "input"
+          },
+          "output_file": {
+            "dtype": "str",
+            "pin": "input"
+          }
+        }
+      },
+      "tf_print_chains": {
+        "type": "transformer",
+        "mode": "thread",
+        "params": {
+          "output_file": {
+            "dtype": "str",
+            "pin": "input"
+          },
+          "result": {
+            "dtype": "object",
+            "pin": "input"
+          }
+        }
+      },
+      "tf_stochastic_backtrack": {
+        "type": "transformer",
+        "mode": "thread",
+        "params": {
+          "fwd_bwd_result": {
+            "dtype": "object",
+            "pin": "input"
+          },
+          "num_samples": {
+            "dtype": "int",
+            "pin": "input"
+          },
+          "result": {
+            "dtype": "object",
+            "pin": "output"
+          }
+        }
+      }
+    },
+    "macro_objects": [],
+    "macro_listeners": [],
+    "registrar_items": [],
+    "registrar_listeners": [
+      {
+        "registrar": "ipython",
+        "key": "bwd",
+        "target_type": "worker",
+        "target_worker": "tf_fwd_bwd",
+        "namespace_name": "bwd"
+      },
+      {
+        "registrar": "ipython",
+        "key": "fwd",
+        "target_type": "worker",
+        "target_worker": "tf_fwd_bwd",
+        "namespace_name": "fwd"
+      },
+      {
+        "registrar": "ipython",
+        "key": "map_npz",
+        "target_type": "worker",
+        "target_worker": "tf_fwd_bwd",
+        "namespace_name": "map_npz"
+      },
+      {
+        "registrar": "ipython",
+        "key": "stochastic_backtrack",
+        "target_type": "worker",
+        "target_worker": "tf_stochastic_backtrack",
+        "namespace_name": "stochastic_backtrack"
+      },
+      {
+        "registrar": "ipython",
+        "key": "store_energies",
+        "target_type": "worker",
+        "target_worker": "tf_fwd_bwd",
+        "namespace_name": "store_energies"
+      }
+    ],
+    "registrar_cells": [
+      {
+        "cell": "lib_fwd_bwd",
+        "macro_target": "registrar_object1",
+        "registrar": "ipython"
+      },
+      {
+        "cell": "lib_backtrack",
+        "macro_target": "registrar_object2",
+        "registrar": "ipython"
+      }
+    ],
+    "pin_cell_connections": [
+      [
+        "tf_fwd_bwd.result",
+        "cell9"
+      ],
+      [
+        "tf_stochastic_backtrack.result",
+        "cell15"
+      ]
+    ],
+    "cell_pin_connections": [
+      [
+        "cell10",
+        "ctx4.rc.filepath"
+      ],
+      [
+        "cell11",
+        "ctx4.rc.latency"
+      ],
+      [
+        "cell12",
+        "ctx6.rc.filepath"
+      ],
+      [
+        "cell13",
+        "ctx6.rc.latency"
+      ],
+      [
+        "cell14",
+        "tf_print_bprob.output_file"
+      ],
+      [
+        "cell15",
+        "tf_print_chains.result"
+      ],
+      [
+        "cell16",
+        "ctx7.rc.filepath"
+      ],
+      [
+        "cell17",
+        "ctx7.rc.latency"
+      ],
+      [
+        "cell18",
+        "tf_print_chains.output_file"
+      ],
+      [
+        "cell1",
+        "ctx1.rc.filepath"
+      ],
+      [
+        "cell2",
+        "ctx1.rc.latency"
+      ],
+      [
+        "cell3",
+        "ctx2.rc.filepath"
+      ],
+      [
+        "cell4",
+        "ctx2.rc.latency"
+      ],
+      [
+        "cell5",
+        "tf_fwd_bwd.npz_file"
+      ],
+      [
+        "cell6",
+        "tf_fwd_bwd.scores_file"
+      ],
+      [
+        "cell7",
+        "ctx3.rc.filepath"
+      ],
+      [
+        "cell8",
+        "ctx3.rc.latency"
+      ],
+      [
+        "cell9",
+        "tf_print_bprob.fwd_bwd_result"
+      ],
+      [
+        "cell9",
+        "tf_stochastic_backtrack.fwd_bwd_result"
+      ],
+      [
+        "code2",
+        "ctx4.rc.value"
+      ],
+      [
+        "code2",
+        "tf_stochastic_backtrack.code"
+      ],
+      [
+        "code3",
+        "ctx6.rc.value"
+      ],
+      [
+        "code3",
+        "tf_print_bprob.code"
+      ],
+      [
+        "code4",
+        "ctx7.rc.value"
+      ],
+      [
+        "code4",
+        "tf_print_chains.code"
+      ],
+      [
+        "code",
+        "ctx2.rc.value"
+      ],
+      [
+        "code",
+        "tf_fwd_bwd.code"
+      ],
+      [
+        "ctx1.cell1",
+        "ctx1.rc.code_start"
+      ],
+      [
+        "ctx1.cell2",
+        "ctx1.rc.code_update"
+      ],
+      [
+        "ctx1.cell3",
+        "ctx1.rc.code_stop"
+      ],
+      [
+        "ctx2.cell1",
+        "ctx2.rc.code_start"
+      ],
+      [
+        "ctx2.cell2",
+        "ctx2.rc.code_update"
+      ],
+      [
+        "ctx2.cell3",
+        "ctx2.rc.code_stop"
+      ],
+      [
+        "ctx3.cell1",
+        "ctx3.rc.code_start"
+      ],
+      [
+        "ctx3.cell2",
+        "ctx3.rc.code_update"
+      ],
+      [
+        "ctx3.cell3",
+        "ctx3.rc.code_stop"
+      ],
+      [
+        "ctx4.cell1",
+        "ctx4.rc.code_start"
+      ],
+      [
+        "ctx4.cell2",
+        "ctx4.rc.code_update"
+      ],
+      [
+        "ctx4.cell3",
+        "ctx4.rc.code_stop"
+      ],
+      [
+        "ctx5.cell1",
+        "ctx5.rc.title"
+      ],
+      [
+        "ctx5.cell2",
+        "ctx5.rc.maximum"
+      ],
+      [
+        "ctx5.cell3",
+        "ctx5.rc.code_start"
+      ],
+      [
+        "ctx5.cell4",
+        "ctx5.rc.code_stop"
+      ],
+      [
+        "ctx5.cell5",
+        "ctx5.rc.code_update"
+      ],
+      [
+        "ctx6.cell1",
+        "ctx6.rc.code_start"
+      ],
+      [
+        "ctx6.cell2",
+        "ctx6.rc.code_update"
+      ],
+      [
+        "ctx6.cell3",
+        "ctx6.rc.code_stop"
+      ],
+      [
+        "ctx7.cell1",
+        "ctx7.rc.code_start"
+      ],
+      [
+        "ctx7.cell2",
+        "ctx7.rc.code_update"
+      ],
+      [
+        "ctx7.cell3",
+        "ctx7.rc.code_stop"
+      ],
+      [
+        "lib_backtrack",
+        "ctx3.rc.value"
+      ],
+      [
+        "lib_fwd_bwd",
+        "ctx1.rc.value"
+      ],
+      [
+        "num_samples",
+        "ctx5.rc.value"
+      ],
+      [
+        "num_samples",
+        "tf_stochastic_backtrack.num_samples"
+      ]
+    ],
+    "cell_cell_connections": []
+  }
+}

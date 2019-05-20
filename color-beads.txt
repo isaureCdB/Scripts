@@ -1,0 +1,16 @@
+select GP1 , name GP1
+select GS1 , name GS1
+select GS2 , name GS2
+select G1 , name GU1+GG1+GA1+GC1
+select G2 , name GU2+GG2+GA2+GC2
+select G3 , name GU3+GG3+GA3+GC3
+select G4 , name GU4+GG4+GA4+GC4
+color orange, GP1
+color pink, GS1
+color magenta, GS2
+color green, G1
+color blue, G2
+color cyan, G3
+color yellow, G4
+
+

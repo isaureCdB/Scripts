@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+# Copyright 2008, 2009 Sjoerd de Vries
+# This file is part of the Spyder module: "atom"
+# For licensing information, see LICENSE.txt
+
+import sys, os
+
+PDB = sys.argv[1]
+
+"""
+Computes surface accessibility using NACCESS
+Integer residue
+ *Float absolute
+ *Float relative
+ *Float absolute_sidechain
+ *Float relative_sidechain
+ *Float absolute_mainchain
+ *Float relative_mainchain
+"""
+
+tail = os.path.split(PDB)[1]
+body = os.path.splitext(tail)[0]
+nd = '/home/isaurec/software/naccess'
+cwd = os.getcwd()
+os.chdir(nd)
+os.system("./naccess %s/%s > /dev/null" % (cwd, tail))
+os.remove("%s.asa" % body)
+os.remove("%s.log" % body)
+os.chdir(cwd)
+for l in open(nd + '/' + body+".rsa").read().split('\n'):
+    if len(l) == 0 or l[:3] != "RES": continue
+    try:
+      int(l[9:13])
+    except:
+      continue
+    sa = [int(l[9:13]),
+      float(l[15:22]), float(l[22:28]),
+      float(l[28:35]), float(l[35:41]),
+      float(l[41:48]), float(l[48:54])
+    ]
+    for s in sa:
+        print('%.0f '%s, end=" ")
+    print('')
+os.remove("%s/%s.rsa" % (nd, body))
