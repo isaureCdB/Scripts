@@ -23,7 +23,7 @@ def read_pdb(pdb):
     return lines, numpy.array(atoms), extralines
 
 def apply_matrix(atoms, pivot, rotmat, trans):
-    print(rotmat, file=sys.stderr)
+    #print(rotmat, file=sys.stderr)
     ret = []
     for atom in atoms:
         a = atom-pivot

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import sys, argparse
 import numpy as np
+
+# Select and write specific lines from the input file into an output file
 #######################
 parser = argparse.ArgumentParser(description=__doc__,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
