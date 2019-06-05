@@ -33,6 +33,8 @@ if [ ! -s  ${name}_rna.npy ];then
     chain2rna.py ${name}_chains.txt $nfrag `cat nat` `cat motifs` frag[$f1-$f2].npy  ${name}_rna.npy
 fi
 
+# detect the minimal atom-atom distance between two nucleotides in the chain,
+# at position n and n+$s
 s=5
 if [ "$nfrag" -eq 5 ];then s=4;fi
 
@@ -40,6 +42,8 @@ if [ ! -s  ${name}_chains_mindist_spacing$s ];then
     mindist-frag-in-chains.py ${name}_chains.txt $nfrag $s frag[$f1-$f2].npy > ${name}_chains_mindist_spacing$s
 fi
 
+# compute the percentage of chains with clashes
+# select chains from nucleotide n1 to nucleotide n2
 percent(){
   n1=$1;   n2=$2
   if [ ! -s ${name}_rna-$n1-$n2.lrmsd ];then
