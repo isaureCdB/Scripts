@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 
 import sys, argparse, os, json
+'''
+usage:
+python3 $SCRIPTS/create_alternative_conformer.py $m \
+     $m-aa-fit-clust0.2 $m-dr0.2r-clust1.0 \
+    --o2nd clust1A-alternate2ndr.list --o3rd clust1A-alternate3rdr.list
+
+  #--o2nd $m-clust1A-2nd --o2ndmap $m-clust1A-2nd.map --o3rd $m-clust1A-3rd  --o3rdmap $m-clust1A-3rd.map
+'''
 
 def pp(*x):
     for i in x[:-1]:
