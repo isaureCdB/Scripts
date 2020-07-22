@@ -2,7 +2,7 @@ import sys
 from _read_struc import read_struc
 '''
 usage: select-dat-perscore.py <dat file> <energy cutoff>
-write to the output a dat file containing only the poses with energy above energy cutoff
+write a dat file containing only the poses with energy above an energy cutoff
 '''
 def check(l1):
     for ll in l1:

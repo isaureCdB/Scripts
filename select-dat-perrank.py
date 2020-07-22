@@ -3,7 +3,7 @@ sys.path.insert(0, os.environ["ATTRACTTOOLS"])
 from _read_struc import read_struc
 '''
 usage: select-dat-perrank.py <dat file> <rank cutoff> [--percent]
-write the top-ranked poses (dat file) from an unsorted input.dat
+write the top-ranked poses (dat file) from an unsorted dat file
 '''
 ########################
 parser =argparse.ArgumentParser(description=__doc__,
