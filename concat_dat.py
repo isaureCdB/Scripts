@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-import sys
+import sys, os, argparse
 sys.path.insert(0, os.environ["ATTRACTTOOLS"])
 from _read_struc import read_struc
 
@@ -31,5 +31,5 @@ for l in header1:
 for l1,l2 in structures:
     print '#'+str(n)
     n+=1
-    for l in l1[1:] + l:
+    for l in l1[1:] + l2:
         print l
