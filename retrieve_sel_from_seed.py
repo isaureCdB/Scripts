@@ -12,7 +12,7 @@ args = parser.parse_args()
 ########################
 
 seed1 = [ l.split()[2] for l in open(args.dat1).readlines() if l.startswith("### SEED")]
-seed1 = [ l.split()[2] for l in open(args.dat2).readlines() if l.startswith("### SEED")]
+seed2 = [ l.split()[2] for l in open(args.dat2).readlines() if l.startswith("### SEED")]
 
 set2 = set(seed2)
 res = [i for i, val in enumerate(seed1) if val in set2]
