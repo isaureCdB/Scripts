@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 from _read_struc import read_struc
 
@@ -10,7 +11,7 @@ parser.add_argument("--dataorder",help="keep order from dat file", action="store
 args = parser.parse_args()
 #######################
 
-write_structure(struct, n):
+def write_structure(struct, n):
     l1,l2 = struct
     print "#"+str(n+1)
     try:
