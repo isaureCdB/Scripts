@@ -13,10 +13,10 @@ args = parser.parse_args()
 
 def write_structure(struct, n):
     l1,l2 = struct
-    print "#"+str(n+1)
+    print("#"+str(n))
     try:
-        for l in l1: print l
-        for l in l2: print l
+        for l in l1: print(l)
+        for l in l2: print(l)
     except IOError:
         sys.exit()
 
