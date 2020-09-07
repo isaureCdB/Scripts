@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-import sys
+#!/usr/bin/env python2
+import sys, argparse
 from _read_struc import read_struc
 
 #######################
@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 def write_structure(struct, n):
     l1,l2 = struct
-    print "#"+str(n+1)
+    print "#"+str(n)
     try:
         for l in l1: print l
         for l in l2: print l
@@ -30,16 +30,19 @@ selstruc = {}
 n = 0
 for s in structures:
     l1,l2 = s
-    for l in l1:
-        if not l.startswith("### SEED"): continue
-        seed = l.split()[2]
-        if seed not in selected_set: continue
-        n += 1
-        if args.dataorder:
-            write_structure(s, n)
-            continue
-        selstruc[seed] = s
+    seed = [l.split()[2] for l in l1 if l.startswith("### SEED")][0]
+    if n == 0:
+        print >> sys.stderr, seed
+    if seed not in selected_set: continue
+    n += 1
+    if args.dataorder:
+        write_structure(s, n)
+        continue
+    selstruc[seed] = s
 
-if not args.dataorder():
+print >> sys.stderr, seeds[0]
+
+
+if not args.dataorder:
     for ns, seed in enumerate(seeds):
         write_structure(selstruc[seed], ns)
