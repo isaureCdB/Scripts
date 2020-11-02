@@ -13,7 +13,6 @@ parser.add_argument('--index', help = "structure indexe", type = int)
 parser.add_argument('--insert', action = "store_true")
 args = parser.parse_args()
 ########################
-npy = npy2to3(np.load(args.npy))
 
 def npy2to3(npy):
     if len(npy.shape) == 2:
@@ -74,6 +73,8 @@ def convert(npy, template):
             print(l[:30]+"%8.3f%8.3f%8.3f"%(coor[0], coor[1], coor[2])+l[54:-1])
         m+=1
         print("ENDMDL")
+
+npy = npy2to3(np.load(args.npy))
 
 if args.list:
     sel = [ int(l.split()[0])-1 for l in open(args.list).readlines() ]
