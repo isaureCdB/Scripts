@@ -7,7 +7,7 @@ import numpy as np
 parser =argparse.ArgumentParser(description=__doc__,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('npy')
-parser.add_argument('template')
+parser.add_argument('template', help = "a single PDB of one of the structures")
 parser.add_argument('--list', help = "list of structure indexes")
 parser.add_argument('--index', help = "structure indexe", type = int)
 parser.add_argument('--insert', action = "store_true")
