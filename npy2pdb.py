@@ -2,7 +2,7 @@
 
 import sys, argparse
 import numpy as np
-from npy import npy2to3
+
 ########################
 parser =argparse.ArgumentParser(description=__doc__,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -14,6 +14,16 @@ parser.add_argument('--insert', action = "store_true")
 args = parser.parse_args()
 ########################
 npy = npy2to3(np.load(args.npy))
+
+def npy2to3(npy):
+    if len(npy.shape) == 2:
+        if npy.shape[1] == 3:
+            npy = npy.reshape(1, npy.shape[0], npy.shape[1])
+        else:
+            npy = npy.reshape(npy.shape[0], int(npy.shape[1]/3), 3)
+    else:
+        assert len(npy.shape) == 3
+    return npy
 
 def parse_template_insertions(template):
     template = []
