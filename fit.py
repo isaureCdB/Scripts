@@ -129,12 +129,13 @@ elif args.ca:
 elif args.p:
     atoms1_fit = select_p(lines1, atoms1)
     atoms2_fit = select_p(lines2, atoms2)
-elif args.selection1:
-    atoms1_fit = select_sel(lines1, atoms1, args.selection1)
-    atoms2_fit = select_sel(lines2, atoms2, args.selection2)
 else:
     atoms1_fit = select_bb(lines1, atoms1)
     atoms2_fit = select_bb(lines2, atoms2)
+if args.selection1:
+    atoms1_fit = select_sel(lines1, atoms1, args.selection1)
+if args.selection2:
+    atoms2_fit = select_sel(lines2, atoms2, args.selection2)
 assert len(atoms1_fit) and len(atoms1_fit) == len(atoms2_fit), (len(atoms1_fit), len(atoms2_fit))
 
 
