@@ -2,7 +2,7 @@
 
 import numpy as np, sys, argparse
 '''
-usage: npy2dat file.dat.header file.dat.npy --conf file.dat.ens --ene file.dat.ene > file.dat
+usage: npy2dat file.dat.header file.dat.npy --ens file.dat.ens --ene file.dat.ene > file.dat
 reverse process from "dat2npy.py"
 '''
 
