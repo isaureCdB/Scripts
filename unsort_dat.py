@@ -19,7 +19,7 @@ d_sorted = {}
 n = 0
 for ns, s in enumerate(structures):
     l1,l2 = s
-    ind = [l.split()[1] for l in l1 if l.split()[3]=="sort"]][0]
+    ind = [l.split()[1] for l in l1 if l.split()[-1]=="sort"][0]
     d_sorted[ind] = s
 
 indices = list(d_sorted.keys()).sort()
