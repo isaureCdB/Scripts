@@ -19,7 +19,7 @@ def check(l1, cutoff):
                 return False
     return True
 
-header = read_struc(args.datlist[0])
+header = read_struc(args.datlist[0])[0]
 
 structureslist = [ read_struc(dat)[1] for dat in args.datlist]
 
