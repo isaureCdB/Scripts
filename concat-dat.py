@@ -19,16 +19,16 @@ def check(l1, cutoff):
                 return False
     return True
 
-header0 = read_struc(args.datlist[0])
+header = read_struc(args.datlist[0])
 
-structureslist = [ read_struc(dat)[1] for dat in args.datlist)]
+structureslist = [ read_struc(dat)[1] for dat in args.datlist]
 
 n = 1
-for l in header1:
-    print l
+for l in header:
+    print(l)
 for structures in structureslist:
 	for l1,l2 in structures:
-		  print '#'+str(n)
+		  print('#'+str(n))
 		  n+=1
 		  for l in l1[1:] + l2:
-		      print l
+		      print(l)
