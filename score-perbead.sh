@@ -15,6 +15,6 @@ done
 	
 for i in `seq $nrec`; do
 	for j in `seq $nlig`; do
-		$ATTRACTDIR/attract $ATTRACTDIR/../structure-single.dat $ATTRACTDIR/../attract.par /tmp/recbead$i.pdb /tmp/ligbead$j.pdb |awk -v i=$i j=$j '$2=="Energy:"{print i, j, $3}'
+		$ATTRACTDIR/attract $ATTRACTDIR/../structure-single.dat $ATTRACTDIR/../attract.par /tmp/recbead$i.pdb /tmp/ligbead$j.pdb |awk -v i=$i -v j=$j '$2=="Energy:"{print i, j, $3}'
 	done
 done
