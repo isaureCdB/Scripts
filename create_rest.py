@@ -2,8 +2,7 @@
 
 import sys
 from itertools import permutations, combinations
-the next 3 lines...
-python
+
 def combi(items, n):
 	return [list(i) for i in combinations(items, n)]
 
@@ -57,7 +56,7 @@ for r, res in enumerate(cgres):
 	at = [l[5:11].strip() for l in ll if l[13:16] == bead][0]
 	toprint.append("a%i 1 %i"%(i,int(at)))
 	anchors.append("a%i"%i)
-
+	i+=1
 #print dna anchored beads
 nprot = len(prot)
 j=4
@@ -73,6 +72,7 @@ for a in anchors:
 	for n in nucl:
 		filename = "%s/rest-%s%s"%(d,a,n)
 		ff = open(filename, 'w')
+		print(filename)
 		printrest(toprint, [a], [n], ff)
 		ff.close()
 
