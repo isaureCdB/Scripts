@@ -17,7 +17,7 @@ parser.add_argument('--list', help="file list of indices of structures to select
 parser.add_argument('--indices', help="indices of structure to select")
 parser.add_argument('--percent', help="percentage of structures to select")
 parser.add_argument('--inpscores', help="list of input scores in attract format")
-parser.add_argument('--energies', help="write energy in output", action='store_true')
+parser.add_argument('--energies', help="print energy in output", action='store_true')
 
 args = parser.parse_args()
 ########################
@@ -32,10 +32,8 @@ def write_structures(header, structures, indices, scores=None, energies=False):
             print "#%i"%n
             n += 1
             for l in l1:
-                if not l.startswith("## Energy"):
-                    print l
-            if args.energies:
-                print "## Energy: %.3f"%s
+                print l
+                #print "## Energy: %.3f"%s
             for l in l2:
                 print l
 

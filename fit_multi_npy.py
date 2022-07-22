@@ -65,9 +65,9 @@ def fit_multi_npy(a, ref):
 parser =argparse.ArgumentParser(description=__doc__,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('npy', help="np array")
-parser.add_argument('outp_npy', type=str, default = "none")
-parser.add_argument('--rmsd', type=str, default = "none")
-parser.add_argument('--pdb', type=str, default = "none")
+parser.add_argument('outp_npy', type=str, default = None)
+parser.add_argument('--rmsd', type=str, default = None)
+parser.add_argument('--pdb', type=str, default = None)
 parser.add_argument("--npyref", type=str, default = None)
 parser.add_argument("--atoms", type=str, nargs='+', default = None)
 parser.add_argument("--first", action="store_true")
@@ -76,9 +76,9 @@ args = parser.parse_args()
 npy = np.load(args.npy)
 #print(args.pdb)
 
-if args.pdb != "none":
+if args.pdb != None:
     ref = pdb2npy(args.pdb)[0]
-elif args.npyref != "none":
+elif args.npyref != None:
     print("ref is npy")
     ref = npy2to3(np.load(args.npyref))
 elif args.first:
@@ -100,7 +100,7 @@ if args.atoms:
 else:
     new_npy, rmsd = fit_multi_npy(npy, ref)
 
-if args.rmsd != "none":
+if args.rmsd != None:
     f=open(args.rmsd,'w')
     for nr, r in enumerate(rmsd):
         print("%i %.3f"%(nr+1, r),file=f)
