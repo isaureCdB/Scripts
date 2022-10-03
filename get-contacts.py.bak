@@ -45,7 +45,7 @@ def get_interface(a1, a2, rcut):
 	        dist = Y[i][j]
 	        if dist < rcut:
 	          if not (res1,res2) in contacts:
-	            print("%i %i %.2f"%(res1, res2, dist))
+	            print res1, res2, dist
 	            contacts.append((res1,res2))
 
 

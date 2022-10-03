@@ -4,13 +4,14 @@ import sys
 
 def proceed(coor):
     n = len(coor)
-    COM = [ sum([coor[i][j] for i in range(n) ])/n for j in range(3) ]
-    roundCOM = [ round(COM[i]*1000)/1000 for i in range(3) ]
+    #COM = [ sum([coor[i][j] for i in range(n) ])/n for j in range(3) ]
+    #roundCOM = [ round(COM[i]*1000)/1000 for i in range(3) ]
     allcoor = [j**2 for c in coor for j in c ]
     gyr = ( sum(allcoor)/n )**0.5
-    print("COM: ", roundCOM[0], roundCOM[1], roundCOM[2], file=sys.stderr)
-    print("gyr: %.2f"%gyr, file=sys.stderr)
-    print(t[:30]+"%8.3f%8.3f%8.3f"%(COM[0], COM[1], COM[2])+t[54:-1])
+    #print("COM: ", roundCOM[0], roundCOM[1], roundCOM[2], file=sys.stderr)
+    #print("gyr: %.2f"%gyr, file=sys.stderr)
+    print("gyr: %.2f"%gyr)
+    #print(t[:30]+"%8.3f%8.3f%8.3f"%(COM[0], COM[1], COM[2])+t[54:-1])
 
 
 

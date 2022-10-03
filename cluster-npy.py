@@ -64,18 +64,18 @@ for i in range(len(clusters)):
 out2.close()
 
 if False:
-    rmsdfile = npyfilename+'.lrmsd'
-    rmsdlist = [ float(l.split()[1]) for l in open(rmsdfile).readlines()  ]
-    outp3 = npyfilename + '-clust' + str(cutoff) + '.rmsd-per-clustsize'
-    outp4 = npyfilename + '-clust' + str(cutoff) + '.rmsd-per-rank'
-    out3 = open(outp3,"w")
-    out4 = open(outp4,"w")
-    for j in range(len(centers)):
-        print(j+1, rmsdlist[centers[j]], file=out3)
+	rmsdfile = npyfilename+'.lrmsd'
+	rmsdlist = [ float(l.split()[1]) for l in open(rmsdfile).readlines()  ]
+	outp3 = npyfilename + '-clust' + str(cutoff) + '.rmsd-per-clustsize'
+	outp4 = npyfilename + '-clust' + str(cutoff) + '.rmsd-per-rank'
+	out3 = open(outp3,"w")
+	out4 = open(outp4,"w")
+	for j in range(len(centers)):
+		  print(j+1, rmsdlist[centers[j]], file=out3)
 
-    centers.sort()
-    for j in range(len(centers)):
-        print(j+1, rmsdlist[centers[j]], file=out4)
+	centers.sort()
+	for j in range(len(centers)):
+		  print(j+1, rmsdlist[centers[j]], file=out4)
 
-    out3.close()
-    out4.close()
+	out3.close()
+	out4.close()

@@ -4,16 +4,16 @@ import sys, numpy as np, weakref, itertools
 MAXCHUNK = 4000000
 
 #CLUSTERING = list of RMSD cutoffs for hierarchical clustering
-#last CLUSTERING must be 0
-#second-to-last is deredundant criterion (only one of two poses at this distance will be kept, as they are considered as identical)
+#second-to-last is deredundant criterion (only one of two poses at this distance will be kept,
+# as they are considered as identical)
 
 CLUSTERING = [10, 8, 6, 5, 4, 3.5, 3, 2.5, 2, 1.7, 1.5, 1.0, 0.5, 0.1, 0]
 ####CLUSTERING = [0.1, 0]
 
 MAX_CLUSTERING = len(CLUSTERING) - 1
 
-# margin to consider if one member of a cluster could overlap with a member of another cluster
-# based on the RMSD of the cluster representatives.
+# CLUST_MARGIN * clust_radius is the margin to consider if one member of a cluster
+# could overlap with a member of another cluster based on the RMSD of the cluster representatives.
 # 2 is the theoretical worse case; change to 9999 to disable all effects of clustering
 CLUST_MARGIN = 2
 MINCHILD = 100

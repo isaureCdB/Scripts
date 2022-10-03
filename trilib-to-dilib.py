@@ -122,7 +122,7 @@ def deredundant(structures, seq, threshold, chunksize=1000):
     clustlist.close()
 
 def tri2di(a, b, c, dinucl_coor, dinucl_coor_count, dinucl_mapping ):
-    trinucl = np.load(a+b+c+"-dr02r-aa-nofit.npy")
+    trinucl = np.load("trilib/"+a+b+c+"-aa.npy")
     #f = open("trilib/"+a+b+c+"/chains-nucl.txt")
     #mapping = [ [int(i) for i in l.split()] for l in open(f).readlines()]
     #f.close()
@@ -203,7 +203,7 @@ if na == 'dna':
 
 natoms = {}
 for a in bases:
-    natoms[a] = int(np.load(a+a+a+"-dr02r-aa-nofit.npy").shape[1]/3)
+    natoms[a] = int(np.load("trilib/"+a+a+a+"-aa.npy").shape[1]/3)
 
 dinucl_coor = {}
 dinucl_coor_count = {}
