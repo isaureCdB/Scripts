@@ -1,13 +1,15 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import numpy as np
 import sys
-from _read_struc import read_struc
+import itertools
+
 '''
 usage: python dat2npy.py <file.dat>
 convert a file.dat into a np.array of (energy), (conformer) and rotation-tranlation matrices
 WARNING: must have fixed receptor (first rot-trans line of each pose is all zeros)
 '''
+
 datfile = sys.argv[1]
 
 max_nposes = 10000000
@@ -15,37 +17,40 @@ if len(sys.argv) > 2:
     max_nposes = int(sys.argv[2])
 
 outp1 = datfile + ".npy"
-outp2 = open(datfile + ".ene", 'w')
-outp3 = open(datfile + ".ens", 'w')
+outp2 = datfile + ".ene"
+outp3 = datfile + ".ens"
 outp4 = open(datfile + ".header", 'w')
-
-header,structures = read_struc(datfile)
-
-for l in header:
-    print >> outp4 , l
-outp4.close()
 
 npy = np.zeros((max_nposes,6), dtype=float)
 ene = np.zeros(max_nposes, dtype=float)
+ens = np.zeros(max_nposes, dtype=np.int32)
+fix_rec = False
 energies = False
 ensemble = False
-i=0
-for (l1, l2) in structures:
-    if i==0:
-        if len(l2[1].split()) == 7:
-            ens = np.zeros(max_nposes, dtype=np.int32)
-            ensemble = True
-    try:
-        ene[i] = [ float(l[10:]) for l in l1 if l.startswith("## Energy:")][0]
-        energies = True
-    except:
-        pass
-    if ensemble:
-        ens[i] = int(l2[1].split()[0])
-        npy[i] = [ float(j) for j in l2[1].split()[1:]]
-    else:
-        npy[i] = [ float(j) for j in l2[1].split()]
-    i += 1
+
+i=-1
+for l in open(datfile).readlines():
+	l = l.rstrip("\n")   
+	if len(l.split()) == 1:
+	    i += 1
+	if i == -1:
+		print(l, file=outp4)
+		continue
+	if l.startswith("## Energy"):## Energy:
+		energies = True
+		ene[i] = float(l[10:])
+	if not l.startswith("#"):
+		if not fix_rec:
+			assert len([ll for ll in l.split() if float(ll)==0]) == 6, "receptor not fixed"
+			fix_rec = True
+		if len(l.split()) == 7:
+			ensemble = True
+			ens[i] = int(l.split()[0])
+			npy[i] = [ float(j) for j in l.split()[1:]]
+		if len(l.split()) == 6:
+			npy[i] = [ float(j) for j in l.split()]
+
+outp4.close()
 
 npy = npy[:i]
 np.save(outp1, npy)
