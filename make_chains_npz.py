@@ -31,7 +31,7 @@ def write_chain(ranks, sum_overlap_msds, meanrank):
     lr = []
     if lrmsds is not None:
         for pose, rank in enumerate(ranks):
-            lr.append(lrmsds[pose][rank])
+            lr.append(lrmsds[pose][rank+1])
         lrms = np.sqrt(sum([v*v for v in lr])/len(lr))
         lrms = "%.3f" % lrms
     o = np.sqrt(sum_overlap_msds / (len(ranks) - 1) )
@@ -91,10 +91,20 @@ if __name__ == "__main__":
 
     # np.array of poses coordinates
     preatoms, postatoms = sys.argv[3:nfrag+3], sys.argv[nfrag+3:2*nfrag+3]
-    postatoms = [np.load(f) for f in postatoms]
-    preatoms = [np.load(f) for f in preatoms]
-    for arr in (preatoms, postatoms):
+    def load_atoms(atomsf):
+        result = []
+        for n, f in enumerate(atomsf):
+            if f in atomsf[:n]:
+                result.append(result[atomsf.index(f)])
+            else:
+                result.append(np.load(f))
+        return result
+    postatoms = load_atoms(postatoms)
+    preatoms = load_atoms(preatoms)
+    for arr in (preatoms, postatoms):        
         for anr, a in enumerate(arr):
+            if len(a.shape) == 3 and a.shape[-1] == 3:
+                a = a.reshape(len(a), -1)
             ncoor = a.shape[1] // 3
             arr[anr] = a.reshape(a.shape[0], ncoor, 3)
 

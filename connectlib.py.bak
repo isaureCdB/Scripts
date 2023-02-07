@@ -41,7 +41,7 @@ try:
         )
         return msd
 except ImportError:
-    print("Cannot find cffi, you will lose some speed", file=sys.stderr)
+    print >> sys.stderr, "Cannot find cffi, you will lose some speed"
     def get_msd(c1, c2):
         #actually computes square-deviation (sd), not msd
         d = c1[:, np.newaxis, :, :] - c2[np.newaxis, :, :, :]
@@ -115,7 +115,7 @@ class Cluster(object):
         if coors is not None and len(coors) == 1: #singleton
             self.clusterlevel = MAX_CLUSTERING
         else:
-            assert clusterlevel is None or clusterlevel < MAX_CLUSTERING
+            assert clusterlevel < MAX_CLUSTERING
             self.clusterlevel = clusterlevel #contains the clusterlevel of the cluster itself, not of the cluster children!
         if self.clusterlevel == MAX_CLUSTERING:
             self._splittable = False
@@ -418,7 +418,7 @@ class Cluster(object):
         # For each of the representative of the connected clusters of fwd/bwd fragment (=c2),
         # check connectivity with each of the representative of the children clusters (= c1)
         # Divide c2 into chunks for memory saving
-        chunksize = MAXCHUNK//len(c1)
+        chunksize = MAXCHUNK/len(c1)
         for chunkpos in range(0, len(c2), chunksize):
             # Account for clustering cutoff to check if any pose in cluster1 could
             # overlap with any pose in cluster2

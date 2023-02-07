@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 
 """
 connect.py
@@ -39,14 +39,14 @@ if __name__ == "__main__":
 
     # you can give selections of poses as arguments. see l38
     assert nargs == 2 * nfrags or nargs == 3 * nfrags, (nargs, nfrags)
-    print("nfrags", nfrags, file=sys.stderr)
+    print >> sys.stderr, "nfrags", nfrags
     assert nfrags >= 2
     max_msd = max_rmsd**2
 
     preatoms = sys.argv[6:nfrags+6]
     postatoms = sys.argv[nfrags+6:2*nfrags+6]
-    print("PREATOMS", preatoms, file=sys.stderr)
-    print("POSTATOMS", postatoms, file=sys.stderr)
+    print >> sys.stderr, "PREATOMS", preatoms
+    print >> sys.stderr, "POSTATOMS", postatoms
     postatoms = [np.load(f) for f in postatoms]
     preatoms = [np.load(f) for f in preatoms]
 
@@ -54,20 +54,16 @@ if __name__ == "__main__":
     selections = [[] for n in range(nfrags)]
     if nargs == 3 * nfrags:
         selections = sys.argv[2*nfrags+6:3*nfrags+6]
-        print("SELECTIONS", selections, file=sys.stderr)
+        print >> sys.stderr, "SELECTIONS", selections
         selections = [np.array(sorted([int(l.split()[0]) for l in open(f) if len(l.strip())])) for f in selections]
 
     # dimensions = (Nb poses, Nb atoms * 3 coordinates)
-    for arr in (preatoms, postatoms):
-        for anr, a in enumerate(arr):
-            if len(a.shape) == 3 and a.shape[-1] == 3:
-                a = a.reshape(len(a), -1)
-                arr[anr] = a
-            assert len(a.shape) == 2 and a.shape[1] % 3 == 0, a.shape
+    for a in postatoms: assert len(a.shape) == 2 and a.shape[1] % 3 == 0, a.shape
+    for a in preatoms: assert len(a.shape) == 2 and a.shape[1] % 3 == 0, a.shape
 
     for arr in (preatoms, postatoms):
         for anr, a in enumerate(arr):
-            ncoor = a.shape[1] // 3
+            ncoor = a.shape[1] / 3
             arr[anr] = a.reshape(a.shape[0], ncoor, 3)
 
     #If you use both maxstruc and selection,
@@ -216,8 +212,8 @@ if __name__ == "__main__":
         done1, done2 = False, False
         while 1:
             if not (step % 5):
-                print([len(c) for c in clusters], file=sys.stderr)
-                print([sum([cc.nodes for cc in c]) for c in clusters], file=sys.stderr)
+                print >> sys.stderr, [len(c) for c in clusters]
+                print >> sys.stderr, [sum([cc.nodes for cc in c]) for c in clusters]
             step += 1
             if not done1:
                 ok1 = decompose(clusters, clusnr, max_rmsd)
@@ -230,8 +226,8 @@ if __name__ == "__main__":
                     if done1: break
                     done2 = True
 
-    print([len(c) for c in clusters[::2]], file=sys.stderr)
-    print([sum([cc.nodes for cc in c]) for c in clusters[::2]], file=sys.stderr)
+    print >> sys.stderr, [len(c) for c in clusters[::2]]
+    print >> sys.stderr, [sum([cc.nodes for cc in c]) for c in clusters[::2]]
 
     #Verification
     for c in clusters[1::2]:

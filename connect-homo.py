@@ -2,6 +2,7 @@
 '''
 extend 2-frag connectivity to x-frag connectivity in homopolymers
 '''
+raise Exception("OUTDATED: use connect-homo-npz instead)
 import json, sys
 import numpy as np
 

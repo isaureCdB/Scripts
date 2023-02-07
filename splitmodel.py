@@ -5,7 +5,7 @@ import sys, argparse
 parser =argparse.ArgumentParser(description=__doc__,
                         formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('multipdb')
-parser.add_argument('template', help="pattern for output files")
+parser.add_argument('template', help="prefix for output files, before -x.pdb")
 parser.add_argument('--list', help="template is a list of output files", action="store_true")
 args = parser.parse_args()
 ########################
@@ -22,7 +22,7 @@ for l in open(f):
     if l.startswith("MODEL"):
         if count > 0: ff.close()
         count += 1
-        target = template + str(count-1)
+        target = template + "-" + str(count) + ".pdb"
         print(target)
         ff = open(target, "w")
         continue

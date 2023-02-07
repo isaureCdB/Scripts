@@ -36,9 +36,10 @@ count = 0
 offset = 1000000
 while count < Ni:
     for i in i_ori[:offset]:
-        fwd[i[0]].append( i[1] )
-        bwd[i[1]].append( i[0] )
-    count += offset
+        if i[0] != i[1]: #avoid self-connection
+            fwd[i[0]].append( i[1] )
+            bwd[i[1]].append( i[0] )
+    count += len(i_ori[:offset])
     print("%d percent interactions processed"%(round(100*count/Ni)), file=sys.stderr)
     i_ori = i_ori[offset:]
 

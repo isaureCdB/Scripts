@@ -166,7 +166,7 @@ if __name__ == "__main__":
       assert pose["radius"] == 0 # clustering radius = 0 (collapsed tree)
       ranks = np.array(pose["ranks"], dtype="int")
       if len(ranks) > 1:
-        print("Warning: duplicate structures detected: %s, selecting best structure" % ranks, file=sys.stderr)
+        print >> sys.stderr, "Warning: duplicate structures detected: %s, selecting best structure" % ranks
       cc = Cluster(fragnr+1,ranks[0])
       clus.append(cc)
     clusters.append(clus)
@@ -183,7 +183,7 @@ if __name__ == "__main__":
 
   # for each frag, for each pose, compute what is the best-rank
   # half-chain from this pose to the end of the chain ("optimus")
-  for cnr in reversed(list(range(len(clusters)))): #from nfrag counting down 
+  for cnr in reversed(range(len(clusters))): #from nfrag counting down 
     clus = clusters[cnr]
     for cc in clus:
       cc.precalc()
@@ -197,8 +197,8 @@ if __name__ == "__main__":
   while not supercluster.done:
     supercluster.make_chunk()
     totcount += len(supercluster.chunk)
-    print(totcount, file=sys.stderr)
-  print(totcount)
+    print >> sys.stderr, totcount
+  print totcount
 
   if outtree is not None:
     #write out tree

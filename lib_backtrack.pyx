@@ -1,6 +1,4 @@
-%load_ext Cython
-
-%%cython -a
+import sys
 import random
 import numpy as np
 cimport numpy as np
@@ -59,8 +57,8 @@ def stochastic_backtrack(np.ndarray[np.float_t,ndim=1] energies, double Z, np.nd
     neighbours = np.zeros(nposes, dtype=int)
     chains = np.zeros((num_samples, nfrags),dtype=int)
     for curr_chain in range(num_samples):
-        if not curr_chain%100:
-            print(curr_chain)
+        if not (curr_chain+1)%10000:
+            print(curr_chain+1,file=sys.stderr)
         threshold = rand[curr_chain, 0]
         count = 0
         selected = nposes - 1
@@ -74,6 +72,3 @@ def stochastic_backtrack(np.ndarray[np.float_t,ndim=1] energies, double Z, np.nd
     uniq_chains, occurencies = np.unique(chains, return_counts=True, axis=0)
     return uniq_chains, occurencies
 #    return chains, chains[:,0] #####
-
-cython_html = _.data
-#/home/isaure/projets/ssRNA/noanchors/4pmw/dock_pocket_lib2018/lib_backtrack.py

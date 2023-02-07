@@ -14,13 +14,20 @@ args = parser.parse_args()
 ############
 
 nfrag = args.nfrag
-cc =  [ l for l in open(args.chains).readlines()[1:]]
-chains = [ [int(i)-1 for i in l.split()[2:2+nfrag]] for l in cc]
-print(args.lrmsd)
+cc =  [ l for l in open(args.chains).readlines()]
+print(cc[0],end="")
+cc = cc[1:]
+cc = [l.split() for l in cc]
+chains = [ [int(i)-1 for i in l[-nfrag:]] for l in cc]
+print(args.lrmsd, file=sys.stderr)
 lrmsds = [ [float(l.split()[-1]) for l in open(f).readlines()] for f in args.lrmsd]
 
 if args.average:
-    for c in chains:
+    for cnr, c in enumerate(chains):
+        for p in cc[cnr][:-nfrag]:
+            print(p, end=" ")
+        for p in c:
+            print(p, end=" ")
         rms = []
         for np, p in enumerate(c):
             rms.append(lrmsds[np][p])
@@ -28,7 +35,11 @@ if args.average:
         print(a)
 
 else:
-    for c in chains:
-        for np, p in enumerate(c):
-            print(lrmsds[np][p], end=" ")
+    for cnr, c in enumerate(chains):
+        for p in cc[cnr][:-nfrag]:
+            print(p, end=" ")
+        for p in c:
+            print(p, end=" ")
+        for fr, p in enumerate(c):
+            print(lrmsds[fr][p], end=" ")
         print("")

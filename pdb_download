@@ -1,4 +1,3 @@
-#!/bin/csh
 #script to download a pdb file
 
 if ($#argv < 1) then

@@ -37,6 +37,6 @@ for n in 1 10 100 1000; do
     for j in `cat $list`; do
         grep "top $n: " $j/$run/$name-count_stars.txt >> /tmp/$x-stars
     done
-    awk -v n=$n 'BEGIN{i=0;j=0;k=0}$3>0{i++}$4>0{j++}$5>0{k++}NR==n{print "top"n": ",  i, j, k}' /tmp/$x-stars >> $run\_$name-stars.txt
+    awk -v n=$n 'BEGIN{i=0;j=0;k=0}$3>0{i++}$4>0{j++}$5>0{k++}END{print "top"n": ",  i, j, k}' /tmp/$x-stars >> $run\_$name-stars.txt
 done
 #fi
